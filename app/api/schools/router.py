@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -37,7 +37,7 @@ class SchoolListItemSchema(BaseModel):
 
 
 @schools_router.get("/", response_model=Page[SchoolListItemSchema])
-def route_get_schools(project_id: str = None, db: Session = Depends(get_db)):
+def route_get_schools(project_id: Optional[str] = None, db: Session = Depends(get_db)):
     return paginate(get_schools(db, project_id))
 
 
