@@ -56,7 +56,12 @@ class DataSource:
             raise Exception(f"Could't find {self.source_id} source assets files")
         return filepath
 
-    def update_asset(self):
+    def update_data_asset(self):
         raise Exception(
             f"{self.source_id} source does not allow getting new data assets automatically"
+        )
+
+    def insert_data(self):
+        raise Exception(
+            f"Configure insert_data method of {self.source_id} source"
         )

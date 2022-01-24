@@ -1,18 +1,22 @@
+from typing import Optional
+
 import click as click
 
 from app.cli.cli_logger import cli_logger
+from app.data_providers.common.provider import DataSource
 
 
-def get_data_source(data_provider_id: str, data_source_id: str):
+def get_data_source(data_provider_id: str, data_source_id: str) -> DataSource:
     from app.data_providers.providers import data_providers
 
     try:
-        return data_providers.get(data_provider_id)().sources.get(data_source_id)
+        return data_providers[data_provider_id]().sources[data_source_id]
     except KeyError:
         click.echo(
             f"{data_provider_id} provider with {data_source_id} source wasn't found",
             err=True,
         )
+        exit()
 
 
 @click.group()

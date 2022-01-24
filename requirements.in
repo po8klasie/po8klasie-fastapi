@@ -14,5 +14,6 @@ click
 
 black
 flake8
+pyright
 
 pip-tools

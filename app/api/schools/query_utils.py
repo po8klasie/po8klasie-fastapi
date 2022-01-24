@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.data_providers.rspo_api.models import RspoFacility
@@ -9,7 +10,7 @@ def query_rspo_facility(db: Session):
     )
 
 
-def get_schools(db: Session, project_id: str):
+def get_schools(db: Session, project_id: Optional[str] = None):
     query = query_rspo_facility(db)
     if project_id:
         query = query.filter_by(project_id=project_id)

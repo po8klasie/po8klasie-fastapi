@@ -22,7 +22,7 @@ def get_data_asset_filepath(data_provider_id: str, data_source_id: str, ext: str
     for root, dirs, files in os.walk(assets_dir):
         for filename in files:
             date_string = re.search(DATE_STRING_REGEX, filename)
-            if filename == f"{data_source_id}_{date_string.group(1)}.{ext}":
+            if date_string and filename == f"{data_source_id}_{date_string.group(1)}.{ext}":
                 return os.path.join(assets_dir, filename)
 
 
