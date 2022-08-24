@@ -1,22 +1,8 @@
-from typing import Optional
-
 import click as click
 
 from app.cli.cli_logger import cli_logger
-from app.data_providers.common.provider import DataSource
-
-
-def get_data_source(data_provider_id: str, data_source_id: str) -> DataSource:
-    from app.data_providers.providers import data_providers
-
-    try:
-        return data_providers[data_provider_id]().sources[data_source_id]
-    except KeyError:
-        click.echo(
-            f"{data_provider_id} provider with {data_source_id} source wasn't found",
-            err=True,
-        )
-        exit()
+from app.jobs.add_gdynia_api_data_to_records import add_gdynia_api_data_to_records
+from app.jobs.create_facility_records import create_facility_records
 
 
 @click.group()
@@ -27,67 +13,28 @@ def cli(ctx):
     ctx.ensure_object(dict)
 
 
-# --- Updating assets data
+# --- Jobs
 
 
-@cli.command("update_data_asset")
-@click.argument("data_provider_id")
-@click.argument("data_source_id")
-def update_data_asset(data_provider_id, data_source_id):
-    """Update asset file automatically"""
-    get_data_source(data_provider_id, data_source_id).update_data_asset()
+@cli.command("create_facility_records")
+def create_facility_records_command():
+    create_facility_records()
 
 
-@cli.command("update_data_assets")
-def update_data_assets():
-    """Update assets files automatically"""
-    from app.data_providers.providers import data_providers
-
-    for data_provider in data_providers.values():
-        cli_logger.info(f"Sourcing data from {data_provider.provider_id} provider")
-        for source in data_provider().sources.values():
-            try:
-                source.update_data_asset()
-                cli_logger.info(f"Updated data from {source.source_id} source")
-            except Exception:
-                cli_logger.info(
-                    f"{source.source_id} doesn't allow automatic asset updates. Skipping."
-                )
-
-
-# --- Inserting assets data
-
-
-@cli.command("insert_asset_data")
-@click.argument("data_provider_id")
-@click.argument("data_source_id")
-def insert_asset_data(data_provider_id, data_source_id):
-    """Inserts data from data asset to db"""
-    get_data_source(data_provider_id, data_source_id).insert_data()
-
-
-@cli.command("insert_assets_data")
-def insert_assets_data():
-    """Inserts data from data assets to db"""
-    from app.data_providers.providers import data_providers
-
-    for data_provider in data_providers.values():
-        cli_logger.info(f"Inserting data from {data_provider.provider_id} provider")
-        for source in data_provider().sources.values():
-            cli_logger.info(f"Inserting data from {source.source_id} source")
-            source.insert_data()
-    cli_logger.info("Inserted assets data to db")
+@cli.command("add_gdynia_api_data_to_records")
+def add_gdynia_api_data_to_records_command():
+    add_gdynia_api_data_to_records()
 
 
 # --- Inserting projects
 
 
-@cli.command("insert_projects")
-def insert_projects():
-    """Drops db data"""
-    from app.projects.projects import insert_projects
+@cli.command("create_project_records")
+def create_project_records_command():
+    from app.projects.add_project_records import create_project_records
 
-    insert_projects()
+    create_project_records()
+
     cli_logger.info("inserted projects to db")
 
 
@@ -118,5 +65,6 @@ def prepare_db(ctx):
     """Prepare db"""
     ctx.invoke(drop_db)
     ctx.invoke(create_db_schema)
-    ctx.invoke(insert_projects)
-    ctx.invoke(insert_assets_data)
+    ctx.invoke(create_project_records_command)
+    ctx.invoke(create_facility_records_command)
+    ctx.invoke(add_gdynia_api_data_to_records_command)

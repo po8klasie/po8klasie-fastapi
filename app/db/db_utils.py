@@ -1,7 +1,7 @@
 # https://stackoverflow.com/a/2587041
 from sqlalchemy.sql import ClauseElement
 
-from app.models import Base
+from app.db.base import Base
 from app.db.db import engine
 
 

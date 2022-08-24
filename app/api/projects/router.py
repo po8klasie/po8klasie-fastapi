@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.db.db import get_db
-from app.projects.models import Project
+from app.models.project import Project
 
 projects_router = APIRouter()
 
