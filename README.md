@@ -6,8 +6,15 @@
 1. `docker-compose -f docker-compose.local.yml up --build`
 2. Inside docker container `./cli.py prepare_db`
 
-To update providers data run `./cli.py update_data_assets`
+## Env vars
 
-DO NOT DELETE EMPTY JSON FILES from data_assets dir.
+- `DATABASE_URL`
 
-API swagger is hosted at /docs
+
+## Commands
+
+`./cli.py <command>`
+
+### `prepare_db`
+
+Bootstrap db. Run all jobs
