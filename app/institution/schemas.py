@@ -3,11 +3,11 @@ from typing import Optional, List
 from app.lib.router_utils import CamelCasedModel
 
 
-class FacilityListItemSchema(CamelCasedModel):
+class InstitutionListItemSchema(CamelCasedModel):
     project_id: Optional[str]
     name: str
     rspo: str
-    rspo_facility_type: int
+    rspo_institution_type: int
     street: str
     building_number: str
     apartment_number: str
@@ -28,7 +28,7 @@ class FacilityListItemSchema(CamelCasedModel):
         orm_mode = True
 
 
-class FacilityResponseSchema(FacilityListItemSchema):
+class InstitutionResponseSchema(InstitutionListItemSchema):
     email: str
     phone: str
     website: str

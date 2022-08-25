@@ -3,16 +3,16 @@ from typing import Dict
 
 from sqlalchemy.orm import Session
 
-from app.facility.models import Facility
+from app.institution.models import Institution
 
 from app.project.models import Project
 
 
-def create_model_from_facility_data(db: Session, fd: Dict, project_id: str):
-    facility = Facility(
+def create_model_from_institution_data(db: Session, fd: Dict, project_id: str):
+    institution = Institution(
         project=db.query(Project).filter_by(project_id=project_id).one(),
         rspo=fd.get("numerRspo"),
-        rspo_facility_type=fd.get("typ", {}).get("id"),
+        rspo_institution_type=fd.get("typ", {}).get("id"),
         foundation_date=fd.get("dataZalozenia"),
         commencement_date=fd.get("dataRozpoczecia"),
         shutdown_date=fd.get("dataZakonczenia"),
@@ -47,4 +47,4 @@ def create_model_from_facility_data(db: Session, fd: Dict, project_id: str):
         email=fd.get("email"),
         website=fd.get("stronaInternetowa"),
     )
-    return facility
+    return institution

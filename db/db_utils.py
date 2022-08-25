@@ -1,9 +1,6 @@
-# https://stackoverflow.com/a/2587041
-from sqlalchemy import MetaData
 from sqlalchemy.sql import ClauseElement
 
-from db.base import Base
-from db.db import engine
+# https://stackoverflow.com/a/2587041
 
 
 def get_or_create(session, model, defaults=None, **kwargs):
@@ -26,15 +23,3 @@ def get_or_create(session, model, defaults=None, **kwargs):
             return instance, False
         else:
             return instance, True
-
-
-def drop_all():
-    meta = MetaData(bind=engine)
-    meta.reflect()
-
-    for tbl in reversed(meta.sorted_tables):
-        engine.execute(tbl.delete())
-
-
-def create_all():
-    Base.metadata.create_all(bind=engine)

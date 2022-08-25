@@ -6,15 +6,15 @@ from sqlalchemy.orm import relationship, Session
 from db.base import Base
 
 
-class Facility(Base):
-    __tablename__ = "facilities"
+class Institution(Base):
+    __tablename__ = "institutions"
 
     project = relationship("Project")
     project_id = Column(String, ForeignKey("projects.project_id"))
 
     # numerRspo
     rspo = Column(String, primary_key=True)
-    rspo_facility_type = Column(String)
+    rspo_institution_type = Column(String)
 
     # dataZalozenia
     foundation_date = Column(Date)
@@ -37,7 +37,7 @@ class Facility(Base):
     # nazwaSkrocona
     shortened_name = Column(String)
 
-    facility_type = Column(String)
+    institution_type = Column(String)
 
     # dyrektorImie
     principal_first_name = Column(String)
@@ -116,16 +116,16 @@ class Facility(Base):
     extracurricular_activities = Column(ARRAY(String))
 
 
-def query_facility(db: Session):
-    return db.query(Facility)
+def query_institution(db: Session):
+    return db.query(Institution)
 
 
-def get_facilities(db: Session, project_id: Optional[str] = None):
-    query = query_facility(db)
+def get_institutions(db: Session, project_id: Optional[str] = None):
+    query = query_institution(db)
     if project_id:
         query = query.filter_by(project_id=project_id)
     return query
 
 
-def get_facility(db: Session, rspo: str):
-    return query_facility(db).filter_by(rspo=rspo).one()
+def get_institution(db: Session, rspo: str):
+    return query_institution(db).filter_by(rspo=rspo).one()

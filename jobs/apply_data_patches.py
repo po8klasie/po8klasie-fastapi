@@ -1,4 +1,4 @@
-from app.facility.patches import apply_data_patches as apply
+from app.institution.patches import apply_data_patches as apply
 from db.db import get_db
 
 

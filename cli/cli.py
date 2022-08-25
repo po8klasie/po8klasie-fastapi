@@ -14,14 +14,14 @@ def cli(ctx):
 # --- Jobs
 
 
-@cli.command("create_facility_records")
-def create_facility_records_command():
-    """Create facility records"""
-    from jobs.create_facility_records import create_facility_records
+@cli.command("create_institution_records")
+def create_institution_records_command():
+    """Create institution records"""
+    from jobs.create_institution_records import create_institution_records
 
-    create_facility_records()
+    create_institution_records()
 
-    cli_logger.info("Created facility records")
+    cli_logger.info("Created institution records")
 
 
 @cli.command("add_gdynia_api_data_to_records")
@@ -36,12 +36,12 @@ def add_gdynia_api_data_to_records_command():
 
 @cli.command("apply_data_patches")
 def apply_data_patches_command():
-    """Apply data patches to facilities records"""
+    """Apply data patches to institutions records"""
     from jobs.apply_data_patches import apply_data_patches
 
     apply_data_patches()
 
-    cli_logger.info("Applied data patches to facilities records")
+    cli_logger.info("Applied data patches to institutions records")
 
 
 # --- Projects
@@ -63,7 +63,7 @@ def create_project_records_command():
 @cli.command("create_db_schema")
 def create_db_schema():
     """Create db schema"""
-    from db.db_utils import create_all
+    from db.db_regeneration_utils import create_all
 
     create_all()
     cli_logger.info("Created db schema")
@@ -72,7 +72,7 @@ def create_db_schema():
 @cli.command("drop_db")
 def drop_db():
     """Drop db data"""
-    from db.db_utils import drop_all
+    from db.db_regeneration_utils import drop_all
 
     drop_all()
     cli_logger.info("Dropped db")
@@ -85,6 +85,6 @@ def regenerate_db_command(ctx):
     ctx.invoke(drop_db)
     ctx.invoke(create_db_schema)
     ctx.invoke(create_project_records_command)
-    ctx.invoke(create_facility_records_command)
+    ctx.invoke(create_institution_records_command)
     ctx.invoke(add_gdynia_api_data_to_records_command)
     ctx.invoke(apply_data_patches_command)

@@ -29,7 +29,7 @@ def fetch(path: str, params: Dict[str, str] = None):
     return res.json()
 
 
-def fetch_facility_data(params: Dict[str, str] = None, page_limit: int = None):
+def fetch_institution_data(params: Dict[str, str] = None, page_limit: int = None):
     counter = 0
     next_api_page_url = "/api/placowki/?page=1"  # doesn't work w/o page=1
     has_reached_end = False
@@ -64,11 +64,11 @@ def fetch_facility_data(params: Dict[str, str] = None, page_limit: int = None):
         cli_logger.info("Fetched RSPO API data")
 
 
-def fetch_borough_facility_data(borough_name: str):
+def fetch_borough_institution_data(borough_name: str):
     params_list = [
-        {"powiat_nazwa": borough_name, "typ_podmiotu_id": facility_type_id}
-        for facility_type_id in RELEVANT_FACILITY_TYPE_IDS
+        {"powiat_nazwa": borough_name, "typ_podmiotu_id": institution_type_id}
+        for institution_type_id in RELEVANT_FACILITY_TYPE_IDS
     ]
     return itertools.chain.from_iterable(
-        [fetch_facility_data(params) for params in params_list]
+        [fetch_institution_data(params) for params in params_list]
     )

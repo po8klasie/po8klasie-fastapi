@@ -1,27 +1,27 @@
 from db.db import get_db
-from app.facility.models import Facility
-from app.facility.providers.gdynia_api.fetch import fetch_gdynia_facility_data
-from app.facility.providers.gdynia_api.model_mapper import (
-    add_gdynia_facility_data_to_model,
+from app.institution.models import Institution
+from app.institution.providers.gdynia_api.fetch import fetch_gdynia_institution_data
+from app.institution.providers.gdynia_api.model_mapper import (
+    add_gdynia_institution_data_to_model,
 )
 
 
 def add_gdynia_api_data_to_records():
     db = next(get_db())
 
-    gdynia_facility_data = fetch_gdynia_facility_data()
+    gdynia_institution_data = fetch_gdynia_institution_data()
 
-    for gdynia_single_facility_data in gdynia_facility_data:
-        rspo = gdynia_single_facility_data.get("rspo")
+    for gdynia_single_institution_data in gdynia_institution_data:
+        rspo = gdynia_single_institution_data.get("rspo")
 
-        facility_match = db.query(Facility).filter_by(rspo=rspo).first()
+        institution_match = db.query(Institution).filter_by(rspo=rspo).first()
 
-        if not facility_match:
+        if not institution_match:
             continue
 
-        facility_match = add_gdynia_facility_data_to_model(
-            facility_match, gdynia_single_facility_data
+        institution_match = add_gdynia_institution_data_to_model(
+            institution_match, gdynia_single_institution_data
         )
-        db.add(facility_match)
+        db.add(institution_match)
 
     db.commit()
