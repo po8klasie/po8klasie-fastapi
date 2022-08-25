@@ -1,6 +1,6 @@
 from sqlalchemy import Column
 from sqlalchemy.types import String
-from app.db.base import Base
+from db.base import Base
 
 
 class Project(Base):

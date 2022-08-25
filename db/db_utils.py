@@ -1,8 +1,8 @@
 # https://stackoverflow.com/a/2587041
 from sqlalchemy.sql import ClauseElement
 
-from app.db.base import Base
-from app.db.db import engine
+from db.base import Base
+from db.db import engine
 
 
 def get_or_create(session, model, defaults=None, **kwargs):

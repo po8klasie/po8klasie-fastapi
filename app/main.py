@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.api import api_router
+from app.router import api_router
 
 app = FastAPI(title="po8klasie-fastapi")
 

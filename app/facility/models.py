@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import Column, ForeignKey, String, Date, ARRAY, Float, Boolean, Integer
 from sqlalchemy.orm import relationship, Session
 
-from app.db.base import Base
+from db.base import Base
 
 
 class Facility(Base):

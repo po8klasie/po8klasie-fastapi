@@ -3,9 +3,9 @@ from typing import Dict
 
 from sqlalchemy.orm import Session
 
-from app.models.facility import Facility
+from app.facility.models import Facility
 
-from app.models.project import Project
+from app.project.models import Project
 
 
 def create_model_from_facility_data(db: Session, fd: Dict, project_id: str):

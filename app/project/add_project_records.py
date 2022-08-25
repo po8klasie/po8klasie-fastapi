@@ -1,11 +1,11 @@
 import yaml
 import glob
 
-from app.cli.cli_logger import cli_logger
-from app.db.db import get_db
-from app.models.project import Project
+from run.cli_logger import cli_logger
+from db.db import get_db
+from app.project.models import Project
 
-config_files = glob.glob("./app/projects/configs/*.yml")
+config_files = glob.glob("./app/project/configs/*.yml")
 
 
 def parse_config_file(filename):
@@ -23,4 +23,4 @@ def create_project_records():
         project_config = parse_config_file(config_file)
         db.add(Project(**project_config))
     db.commit()
-    cli_logger.info("Added projects")
+    cli_logger.info("Added project")

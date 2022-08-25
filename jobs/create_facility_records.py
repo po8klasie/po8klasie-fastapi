@@ -1,8 +1,8 @@
 from requests import Session
 
-from app.db.db import get_db
-from app.providers.rspo_api.model_mapper import create_model_from_facility_data
-from app.providers.rspo_api.fetch import fetch_borough_facility_data
+from db.db import get_db
+from app.facility.providers.rspo_api.model_mapper import create_model_from_facility_data
+from app.facility.providers.rspo_api.fetch import fetch_borough_facility_data
 
 
 def create_borough_facility_records(db: Session, borough_name: str, project_id: str):

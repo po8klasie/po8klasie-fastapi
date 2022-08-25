@@ -1,7 +1,9 @@
-from app.db.db import get_db
-from app.models.facility import Facility
-from app.providers.gdynia_api.fetch import fetch_gdynia_facility_data
-from app.providers.gdynia_api.model_mapper import add_gdynia_facility_data_to_model
+from db.db import get_db
+from app.facility.models import Facility
+from app.facility.providers.gdynia_api.fetch import fetch_gdynia_facility_data
+from app.facility.providers.gdynia_api.model_mapper import (
+    add_gdynia_facility_data_to_model,
+)
 
 
 def add_gdynia_api_data_to_records():

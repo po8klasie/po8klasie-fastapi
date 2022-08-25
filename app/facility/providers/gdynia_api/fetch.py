@@ -1,6 +1,6 @@
 import requests
 
-from app.cli.cli_logger import cli_logger
+from run.cli_logger import cli_logger
 
 
 BASE_URL = "https://edukacja.gdynia.pl/api"
