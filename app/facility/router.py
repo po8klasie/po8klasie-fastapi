@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from fastapi_pagination.ext.sqlalchemy import paginate
 
 from app.facility.schemas import FacilityResponseSchema, FacilityListItemSchema
-from app.router_utils import MaxPaginationLimitPage
+from app.lib.router_utils import MaxPaginationLimitPage
 from db.db import get_db
 from app.facility.models import get_facility, get_facilities, Facility
 

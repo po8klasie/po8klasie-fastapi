@@ -18,3 +18,8 @@
 ### `regenerate_db`
 
 Bootstrap db. Run all jobs
+
+
+## Data patches
+In some cases we want to overwrite facilities data which has been fetched from the APIs.
+To do so, please edit `app/facility/data_patches/patches.yml`

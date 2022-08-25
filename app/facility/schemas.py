@@ -1,10 +1,10 @@
 from typing import Optional, List
 
-from app.router_utils import CamelCasedModel
+from app.lib.router_utils import CamelCasedModel
 
 
 class FacilityListItemSchema(CamelCasedModel):
-    project_id: str
+    project_id: Optional[str]
     name: str
     rspo: str
     rspo_facility_type: int

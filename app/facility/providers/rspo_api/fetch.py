@@ -3,7 +3,7 @@ from typing import Dict
 
 import requests
 
-from run.cli_logger import cli_logger
+from cli.cli_logger import cli_logger
 
 
 BASE_URL = "http://api-rspo.mein.gov.pl"

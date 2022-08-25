@@ -34,6 +34,16 @@ def add_gdynia_api_data_to_records_command():
     cli_logger.info("Added Gdynia API data to records")
 
 
+@cli.command("apply_data_patches")
+def apply_data_patches_command():
+    """Apply data patches to facilities records"""
+    from jobs.apply_data_patches import apply_data_patches
+
+    apply_data_patches()
+
+    cli_logger.info("Applied data patches to facilities records")
+
+
 # --- Projects
 
 
@@ -77,3 +87,4 @@ def regenerate_db_command(ctx):
     ctx.invoke(create_project_records_command)
     ctx.invoke(create_facility_records_command)
     ctx.invoke(add_gdynia_api_data_to_records_command)
+    ctx.invoke(apply_data_patches_command)

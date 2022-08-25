@@ -1,0 +1,7 @@
+patches:
+  # lat & lng are outside of Warsaw
+  - where:
+      project_id: warszawa
+      name: I LICEUM W CHMURZE
+    update:
+      project: null

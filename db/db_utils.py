@@ -1,4 +1,5 @@
 # https://stackoverflow.com/a/2587041
+from sqlalchemy import MetaData
 from sqlalchemy.sql import ClauseElement
 
 from db.base import Base
@@ -28,7 +29,11 @@ def get_or_create(session, model, defaults=None, **kwargs):
 
 
 def drop_all():
-    Base.metadata.drop_all(bind=engine)
+    meta = MetaData(bind=engine)
+    meta.reflect()
+
+    for tbl in reversed(meta.sorted_tables):
+        engine.execute(tbl.delete())
 
 
 def create_all():
