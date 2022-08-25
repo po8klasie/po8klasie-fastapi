@@ -17,3 +17,5 @@ flake8
 pyright
 
 pip-tools
+
+sentry_sdk

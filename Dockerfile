@@ -1,4 +1,4 @@
-FROM python:3.9.4-slim
+FROM python:3.10-slim
 
 RUN mkdir -p /opt/opendata-api
 
