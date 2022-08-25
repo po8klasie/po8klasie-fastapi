@@ -4,7 +4,7 @@
 ## Local quick start
 
 1. `docker-compose -f docker-compose.local.yml up --build`
-2. Inside docker container `./cli.py regenerate_db`
+2. Inside docker container `./run.py regenerate_db`
 
 ## Env vars
 
