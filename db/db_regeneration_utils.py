@@ -3,10 +3,7 @@ from sqlalchemy import MetaData
 
 from db.base import Base
 from db.db import engine
-
-# import all known models
-import app.institution.models
-import app.project.models
+import db.models
 
 
 def drop_all():

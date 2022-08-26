@@ -9,6 +9,7 @@ from app.institution.schemas import InstitutionResponseSchema, InstitutionListIt
 from app.lib.router_utils import MaxPaginationLimitPage
 from db.db import get_db
 from app.institution.models import get_institution, get_institutions, Institution
+import db.models
 
 institution_router = APIRouter()
 

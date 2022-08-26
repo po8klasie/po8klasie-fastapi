@@ -9,6 +9,8 @@ psycopg2-binary
 
 requests
 openpyxl
+overpy
+geopy
 
 click
 

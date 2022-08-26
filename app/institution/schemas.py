@@ -1,6 +1,9 @@
 from typing import Optional, List
 
 from app.lib.router_utils import CamelCasedModel
+from app.public_transport_info.schemas import (
+    InstitutionPublicTransportStopAssociationSchema,
+)
 
 
 class InstitutionListItemSchema(CamelCasedModel):
@@ -34,3 +37,4 @@ class InstitutionResponseSchema(InstitutionListItemSchema):
     website: str
     postal_code: str
     description: Optional[str]
+    public_transport_stops: List[InstitutionPublicTransportStopAssociationSchema]

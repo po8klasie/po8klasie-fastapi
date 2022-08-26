@@ -115,6 +115,10 @@ class Institution(Base):
     class_profiles = Column(ARRAY(String))
     extracurricular_activities = Column(ARRAY(String))
 
+    public_transport_stops = relationship(
+        "InstitutionPublicTransportStopAssociation", back_populates="institution"
+    )
+
 
 def query_institution(db: Session):
     return db.query(Institution)

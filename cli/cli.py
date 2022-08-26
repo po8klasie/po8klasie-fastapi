@@ -44,6 +44,20 @@ def apply_data_patches_command():
     cli_logger.info("Applied data patches to institutions records")
 
 
+# --- Public transport
+
+
+@cli.command("add_public_transport_data_to_records")
+def add_public_transport_data_to_records_command():
+    from jobs.add_public_transport_data_to_records import (
+        add_public_transport_data_to_records,
+    )
+
+    add_public_transport_data_to_records()
+
+    cli_logger.info("Applied public transport data")
+
+
 # --- Projects
 
 
