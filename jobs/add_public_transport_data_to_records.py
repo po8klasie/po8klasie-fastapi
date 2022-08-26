@@ -13,7 +13,7 @@ STOP_DISTANCE_FROM_INSTITUTION = 250
 def add_public_transport_data_to_records():
     db = next(get_db())
 
-    institutions = db.query(Institution)
+    institutions = db.query(Institution).all()
 
     count = len(institutions)
     i = 0
@@ -30,7 +30,7 @@ def add_public_transport_data_to_records():
                 add_public_transport_stops_data_to_institution(
                     db=db,
                     institution=institution,
-                    distance=STOP_DISTANCE_FROM_INSTITUTION,
+                    radius=STOP_DISTANCE_FROM_INSTITUTION,
                 )
                 db.add(institution)
                 has_not_succeeded = False
