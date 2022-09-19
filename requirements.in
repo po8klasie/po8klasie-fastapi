@@ -5,6 +5,7 @@ uvicorn[standard]
 fastapi-pagination[sqlalchemy]
 
 sqlalchemy
+sqlalchemy-cockroachdb
 psycopg2-binary
 
 requests

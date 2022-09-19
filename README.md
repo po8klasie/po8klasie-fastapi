@@ -6,6 +6,10 @@
 1. `docker-compose -f docker-compose.local.yml up --build`
 2. Inside docker container `./run.py regenerate_db`
 
+## Database
+
+We use [CockroachDB](https://github.com/cockroachdb/cockroach) which is compatible with Postgres.
+
 ## Env vars
 
 - `DATABASE_URL`
