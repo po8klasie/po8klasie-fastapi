@@ -1,17 +1,11 @@
 from typing import Dict
 
-
-from sqlalchemy.orm import Session
-
-from app.institution.models import Institution
-
-from app.project.models import Project
+from app.rspo_institution.models import RspoInstitution
 
 
-def create_model_from_institution_data(db: Session, fd: Dict, project_id: str):
-    institution = Institution(
-        project=db.query(Project).filter_by(project_id=project_id).one(),
-        rspo=fd.get("numerRspo"),
+def create_model_from_rspo_institution_data(fd: Dict):
+    rspo_institution = RspoInstitution(
+        rspo=str(fd.get("numerRspo")),
         rspo_institution_type=fd.get("typ", {}).get("id"),
         foundation_date=fd.get("dataZalozenia"),
         commencement_date=fd.get("dataRozpoczecia"),
@@ -47,4 +41,4 @@ def create_model_from_institution_data(db: Session, fd: Dict, project_id: str):
         email=fd.get("email"),
         website=fd.get("stronaInternetowa"),
     )
-    return institution
+    return rspo_institution

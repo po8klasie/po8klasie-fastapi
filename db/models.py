@@ -1,5 +1,6 @@
 # flake8: noqa
 # import all known models
-import app.institution.models
-import app.project.models
-import app.public_transport_info.models
+from app.rspo_institution.models import *
+from app.institution.models import *
+from app.project.models import *
+from app.public_transport_info.models import *

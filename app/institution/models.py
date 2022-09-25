@@ -1,9 +1,23 @@
-from typing import Optional
-
-from sqlalchemy import Column, ForeignKey, String, Date, ARRAY, Float, Boolean, Integer
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    String,
+    Float,
+    Integer,
+    Enum,
+)
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship, Session
 
 from db.base import Base
+
+from app.rspo_institution.models import RspoInstitution
+
+import enum
+
+
+class InstitutionTypeGeneralizedEnum(enum.Enum):
+    SECONDARY_SCHOOL = "secondary_school"
 
 
 class Institution(Base):
@@ -12,98 +26,26 @@ class Institution(Base):
     project = relationship("Project")
     project_id = Column(String, ForeignKey("projects.project_id"))
 
-    # numerRspo
-    rspo = Column(String, primary_key=True)
-    rspo_institution_type = Column(String)
+    rspo_institution: RspoInstitution = relationship("RspoInstitution")
+    rspo = Column(String, ForeignKey("rspo_institutions.rspo"), primary_key=True)
 
-    # dataZalozenia
-    foundation_date = Column(Date)
-    # dataRozpoczecia
-    commencement_date = Column(Date)
-    # dataZakonczenia
-    shutdown_date = Column(Date)
-    # dataLikwidacji
-    termination_date = Column(Date)
+    institution_type_generalized = Column(Enum(InstitutionTypeGeneralizedEnum))
 
-    is_public = Column(Boolean)
+    public_transport_stops = relationship(
+        "InstitutionPublicTransportStopAssociation", back_populates="institution"
+    )
 
-    # nip
-    nip = Column(String)
-    # regon
-    regon = Column(String)
+    __mapper_args__ = {"polymorphic_on": institution_type_generalized}
 
-    # nazwa
-    name = Column(String)
-    # nazwaSkrocona
-    shortened_name = Column(String)
 
-    institution_type = Column(String)
+class SecondarySchoolInstitution(Institution):
+    __tablename__ = "secondary_school_institutions"
 
-    # dyrektorImie
-    principal_first_name = Column(String)
-    # dyrektorNazwisko
-    principal_last_name = Column(String)
+    __mapper_args__ = {
+        "polymorphic_identity": InstitutionTypeGeneralizedEnum.SECONDARY_SCHOOL
+    }
 
-    # czyPosiadaObwod
-    has_school_area = Column(Boolean)
-    # czyPosiadaInternat
-    has_dormitory = Column(Boolean)
-    # czyDotacjaWPrzyszlymRoku
-    next_year_subsidy = Column(Boolean)
-    # opiekaDydaktycznoNaukowaUczelni"
-    partner_universities = Column(ARRAY(String))
-
-    # ksztalcenieZawodowe
-    vocational_training = Column(ARRAY(String))
-    # ksztalcenieZawodoweProfilowane
-    vocational_profiled_training = Column(ARRAY(String))
-    # ksztalcenieZawodoweArtystyczne
-    vocational_art_training = Column(ARRAY(String))
-    # ksztalcenieNKJO
-    nkjo_training = Column(ARRAY(String))
-    # ksztalcenieWKolegiachNauczycielskich
-    teacher_training = Column(ARRAY(String))
-    # ksztalcenieWkolegiachPracownikowSluzbSpolecznych
-    social_service_worker_training = Column(ARRAY(String))
-
-    # wojewodztwo
-    voivodeship = Column(String)
-    # wojewodztwoKodTERYT
-    voivodeship_code = Column(String)
-    # powiat
-    county = Column(String)
-    # powiatKodTERYT
-    county_code = Column(String)
-    # gmina
-    borough = Column(String)
-    # gminaKodTERYT
-    borough_code = Column(String)
-    # miejscowosc
-    city = Column(String)
-    # miejscowoscKodTERYT
-    city_code = Column(String)
-    # ulica
-    street = Column(String)
-    # ulicaKodTERYT
-    street_code = Column(String)
-    # numerBudynku
-    building_number = Column(String)
-    # numerLokalu
-    apartment_number = Column(String)
-    # kodPocztowy
-    postal_code = Column(String)
-
-    # geolokalizacja.latitude
-    latitude = Column(Float)
-    # geolokalizacja.longitude
-    longitude = Column(Float)
-
-    # telefon
-    phone = Column(String)
-    # email
-    email = Column(String)
-    # stronaInternetowa
-    website = Column(String)
+    rspo = Column(None, ForeignKey("institutions.rspo"), primary_key=True)
 
     classrooms_count = Column(Integer)
     sport_classes_count = Column(Integer)
@@ -115,21 +57,18 @@ class Institution(Base):
     class_profiles = Column(ARRAY(String))
     extracurricular_activities = Column(ARRAY(String))
 
-    public_transport_stops = relationship(
-        "InstitutionPublicTransportStopAssociation", back_populates="institution"
+
+def query_institutions(db: Session, entities):
+    return (
+        db.query(Institution)
+        .join(Institution.rspo_institution)
+        .with_entities(*entities)
     )
 
 
-def query_institution(db: Session):
-    return db.query(Institution)
-
-
-def get_institutions(db: Session, project_id: Optional[str] = None):
-    query = query_institution(db)
-    if project_id:
-        query = query.filter_by(project_id=project_id)
-    return query
-
-
-def get_institution(db: Session, rspo: str):
-    return query_institution(db).filter_by(rspo=rspo).one()
+def query_secondary_school_institutions(db: Session, entities):
+    return (
+        db.query(SecondarySchoolInstitution)
+        .join(SecondarySchoolInstitution.rspo_institution)
+        .with_entities(*entities)
+    )

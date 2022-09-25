@@ -1,16 +1,14 @@
 from typing import Optional, List
 
+from app.institution.models import InstitutionTypeGeneralizedEnum
 from app.lib.router_utils import CamelCasedModel
-from app.public_transport_info.schemas import (
-    InstitutionPublicTransportStopAssociationSchema,
-)
 
 
-class InstitutionListItemSchema(CamelCasedModel):
+class SearchListItemSchema(CamelCasedModel):
     project_id: Optional[str]
     name: str
+    institution_type_generalized: InstitutionTypeGeneralizedEnum
     rspo: str
-    rspo_institution_type: int
     street: str
     building_number: str
     apartment_number: str
@@ -29,12 +27,3 @@ class InstitutionListItemSchema(CamelCasedModel):
 
     class Config:
         orm_mode = True
-
-
-class InstitutionResponseSchema(InstitutionListItemSchema):
-    email: str
-    phone: str
-    website: str
-    postal_code: str
-    description: Optional[str]
-    public_transport_stops: List[InstitutionPublicTransportStopAssociationSchema]
