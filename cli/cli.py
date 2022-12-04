@@ -71,6 +71,29 @@ def create_project_records_command():
     cli_logger.info("Created project records")
 
 
+# --- Road accidents
+
+
+@cli.command("create_road_accident_records")
+def add_road_accident_records_command():
+    """Create project records"""
+    from jobs.add_road_accident_records import add_road_accident_records
+
+    add_road_accident_records()
+
+    cli_logger.info("Created road accident records")
+
+
+@cli.command("create_institution_classes_records")
+def add_institution_classes_records():
+    """Create project records"""
+    from jobs.add_institution_classes import add_institution_classes
+
+    add_institution_classes()
+
+    cli_logger.info("Created institution classes records")
+
+
 # --- DB utils
 
 
@@ -101,4 +124,6 @@ def regenerate_db_command(ctx):
     ctx.invoke(create_project_records_command)
     ctx.invoke(create_institution_records_command)
     ctx.invoke(add_gdynia_api_data_to_records_command)
+    ctx.invoke(add_road_accident_records_command)
+    ctx.invoke(add_institution_classes_records)
     ctx.invoke(apply_data_patches_command)

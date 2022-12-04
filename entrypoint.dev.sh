@@ -6,7 +6,7 @@ if [[ "${DATABASE_CERT}" ]]; then
 fi
 
 
-while ! </dev/tcp/crdb/26257; do
+while ! </dev/tcp/db/5432; do
   sleep 1
 done
 

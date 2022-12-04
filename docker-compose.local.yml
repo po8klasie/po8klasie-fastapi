@@ -11,16 +11,16 @@ services:
     env_file:
       - ".env${ENV}"
     depends_on:
-      - crdb
-  crdb:
-    image: cockroachdb/cockroach:v22.1.6
+      - db
+  db:
+    build:
+      context: .
+      dockerfile: db.Dockerfile
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     volumes:
-      - crdb_data:/cockroach/cockroach-data
-    expose:
-      - 26257
-    ports:
-      - 8088:8080
-    command: start-single-node --insecure
+      - db_data:/var/lib/postgresql/data
 
 volumes:
-  crdb_data:
+  db_data:

@@ -1,3 +1,4 @@
+from geoalchemy2 import Geometry
 from sqlalchemy import (
     Column,
     ForeignKey,
@@ -12,6 +13,9 @@ from sqlalchemy.orm import relationship, Session
 from db.base import Base
 
 from app.rspo_institution.models import RspoInstitution
+import app.institution_classes.models
+import app.project.models
+import app.public_transport_info.models
 
 import enum
 
@@ -35,6 +39,8 @@ class Institution(Base):
         "InstitutionPublicTransportStopAssociation", back_populates="institution"
     )
 
+    geometry = Column(Geometry("POINT"))
+
     __mapper_args__ = {"polymorphic_on": institution_type_generalized}
 
 
@@ -46,6 +52,15 @@ class SecondarySchoolInstitution(Institution):
     }
 
     rspo = Column(None, ForeignKey("institutions.rspo"), primary_key=True)
+
+    classes = relationship(
+        "SecondarySchoolInstitutionClass", back_populates="institution"
+    )
+
+    points_stats_min = Column(Float)
+    points_stats_max = Column(Float)
+    available_languages = Column(ARRAY(String))
+    available_extended_subjects = Column(ARRAY(String))
 
     classrooms_count = Column(Integer)
     sport_classes_count = Column(Integer)

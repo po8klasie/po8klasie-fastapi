@@ -1,6 +1,6 @@
 from typing import Optional
 
-from app.api.schemas.search_schemas import SearchListItemSchema
+from app.api.search.schemas import SearchListItemSchema
 
 
 class SingleSchoolResponseSchema(SearchListItemSchema):

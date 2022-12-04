@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
-from app.api.school import school_router
-from app.api.search import search_router
-from app.app_info.router import app_info_router
-from app.project.router import project_router
+from app.api.institution.router import school_router
+from app.api.search.router import search_router
+from app.api.app_info.router import app_info_router
+from app.api.project.router import project_router
 
 api_router = APIRouter()
 

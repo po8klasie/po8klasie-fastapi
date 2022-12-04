@@ -1,3 +1,5 @@
+import shapely.geometry
+
 from app.institution.models import SecondarySchoolInstitution
 from app.rspo_institution.fetch import fetch_borough_rspo_institution_data
 from app.rspo_institution.model_mapper import create_model_from_rspo_institution_data
@@ -6,14 +8,24 @@ from db.db import get_db
 
 def create_borough_institution_records(db, borough_name: str, project_id: str):
     for institution_data in fetch_borough_rspo_institution_data(borough_name):
-        db.add(
-            SecondarySchoolInstitution(
-                rspo_institution=create_model_from_rspo_institution_data(
-                    institution_data
-                ),
-                project_id=project_id,
-            )
+        institution = SecondarySchoolInstitution(
+            rspo_institution=create_model_from_rspo_institution_data(institution_data),
+            available_languages=[],
+            available_extended_subjects=[],
+            project_id=project_id,
         )
+
+        institution.geometry = shapely.geometry.Point(
+            map(
+                float,
+                (
+                    institution.rspo_institution.longitude,
+                    institution.rspo_institution.latitude,
+                ),
+            )
+        ).wkt
+
+        db.add(institution)
 
 
 def create_institution_records():

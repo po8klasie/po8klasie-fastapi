@@ -4,3 +4,5 @@ from app.rspo_institution.models import *
 from app.institution.models import *
 from app.project.models import *
 from app.public_transport_info.models import *
+from app.road_accident.models import *
+from app.institution_classes import *

@@ -4,6 +4,13 @@ from app.institution.models import InstitutionTypeGeneralizedEnum
 from app.lib.router_utils import CamelCasedModel
 
 
+class InstitutionClass(CamelCasedModel):
+    class_name: str
+
+    class Config:
+        orm_mode = True
+
+
 class SearchListItemSchema(CamelCasedModel):
     project_id: Optional[str]
     name: str
@@ -22,8 +29,7 @@ class SearchListItemSchema(CamelCasedModel):
     borough: str
     city: str
 
-    foreign_languages: Optional[List[str]]
-    class_profiles: Optional[List[str]]
+    classes: List[InstitutionClass]
 
     class Config:
         orm_mode = True
