@@ -32,7 +32,6 @@ def road_accident_models_to_features(road_accidents: Iterable[RoadAccident]):
 
 def institution_models_to_features(institutions: Iterable[SecondarySchoolInstitution]):
     for institution in institutions:
-        print(institution)
         properties = {
             "featureType": "institution",
             "rspo": institution.rspo,
