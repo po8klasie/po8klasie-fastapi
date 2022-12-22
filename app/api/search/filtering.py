@@ -13,6 +13,8 @@ from app.rspo_institution.models import RspoInstitution
 search_router_secondary_school_entities = [
     SecondarySchoolInstitution.project_id,
     SecondarySchoolInstitution.rspo,
+    SecondarySchoolInstitution.points_stats_min,
+    SecondarySchoolInstitution.points_stats_max,
     SecondarySchoolInstitution.institution_type_generalized,
     SecondarySchoolInstitution.available_languages,
     SecondarySchoolInstitution.points_stats_min,

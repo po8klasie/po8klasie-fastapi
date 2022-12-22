@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.api.comparison.router import comparison_router
 from app.api.institution.router import school_router
 from app.api.search.router import search_router
 from app.api.app_info.router import app_info_router
@@ -12,6 +13,7 @@ routers = {
     "/app-info": app_info_router,
     "/school": school_router,
     "/search": search_router,
+    "/comparison": comparison_router
 }
 
 
