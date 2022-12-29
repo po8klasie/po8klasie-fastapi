@@ -37,6 +37,40 @@ def route_get_schools(db: Session = Depends(get_db)):
     ).all()
 
 
+@school_router.get("/multiple")
+def route_comparison(
+    rspo: List[str] = Query(default=[]), db: Session = Depends(get_db)
+):
+    if len(rspo) == 0:
+        raise HTTPException(status_code=422, detail="No rspos provided")
+
+    try:
+        institutions = (
+            query_secondary_school_institutions(
+                db, school_router_secondary_school_entities
+            )
+            .filter(SecondarySchoolInstitution.rspo.in_(rspo))
+            .all()
+        )
+
+        for institution in institutions:
+            classes = (
+                query_current_classes(db)
+                .with_entities(
+                    SecondarySchoolInstitutionClass.extended_subjects,
+                    SecondarySchoolInstitutionClass.class_name,
+                )
+                .filter(
+                    SecondarySchoolInstitutionClass.institution_rspo == institution.rspo
+                )
+                .all()
+            )
+            yield {**dict(institution), "classes": classes}
+
+    except NoResultFound:
+        raise HTTPException(status_code=404, detail="No schools found")
+
+
 @school_router.get("/{rspo}", response_model=SingleSchoolResponseSchema)
 def route_get_single_school(rspo: str, db: Session = Depends(get_db)):
     try:
@@ -64,35 +98,3 @@ def route_get_single_school(rspo: str, db: Session = Depends(get_db)):
 
     except NoResultFound:
         raise HTTPException(status_code=404, detail="No school found")
-
-
-@school_router.get("/multiple")
-def route_comparison(rspo: List[str] = Query(default=[]), db: Session = Depends(get_db)):
-    if len(rspo) < 2:
-        raise HTTPException(status_code=422, detail="Invalid number of rspos (<2)")
-
-    try:
-        institutions = (
-            query_secondary_school_institutions(
-                db, school_router_secondary_school_entities
-            )
-            .filter(SecondarySchoolInstitution.rspo.in_(rspo))
-            .all()
-        )
-
-        for institution in institutions:
-            classes = (
-                query_current_classes(db)
-                .with_entities(
-                    SecondarySchoolInstitutionClass.extended_subjects,
-                    SecondarySchoolInstitutionClass.class_name,
-                )
-                .filter(
-                    SecondarySchoolInstitutionClass.institution_rspo == institution.rspo
-                )
-                .all()
-            )
-            yield {**dict(institution), "classes": classes}
-
-    except NoResultFound:
-        raise HTTPException(status_code=404, detail="No schools found")

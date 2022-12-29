@@ -13,7 +13,7 @@ routers = {
     "/app-info": app_info_router,
     "/school": school_router,
     "/search": search_router,
-    "/comparison": comparison_router
+    "/comparison": comparison_router,
 }
 
 

@@ -12,6 +12,8 @@ def create_borough_institution_records(db, borough_name: str, project_id: str):
             rspo_institution=create_model_from_rspo_institution_data(institution_data),
             available_languages=[],
             available_extended_subjects=[],
+            points_stats_max=1000,
+            points_stats_min=-1,
             project_id=project_id,
         )
 

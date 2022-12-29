@@ -31,6 +31,7 @@ def add_institution_classes():
                 available_languages = row["available_languages"].split(",")
                 extended_subjects = row["extended_subjects"].split(",")
                 points_stats_min = float(row["points_stats_min"].replace(",", "."))
+                points_stats_max = float(row["points_stats_max"].replace(",", "."))
 
                 if row["year"] == "2022":
                     institution_match.available_languages = list(
@@ -42,6 +43,7 @@ def add_institution_classes():
                             *extended_subjects,
                         }
                     )
+
                     if points_stats_min and points_stats_min > 0:
                         institution_match.points_stats_min = min(
                             points_stats_min,
@@ -49,7 +51,14 @@ def add_institution_classes():
                             if institution_match.points_stats_min
                             else 1000,
                         )
-                        print(points_stats_min)
+
+                    if points_stats_max and 0 < points_stats_max < 200:
+                        institution_match.points_stats_max = max(
+                            points_stats_max,
+                            institution_match.points_stats_max
+                            if institution_match.points_stats_max
+                            else 0,
+                        )
 
                 institution_class = SecondarySchoolInstitutionClass(
                     institution=institution_match,

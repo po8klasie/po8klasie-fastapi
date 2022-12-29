@@ -17,15 +17,17 @@ from app.institution.models import (
 
 comparison_router = APIRouter()
 
-comparison_router_secondary_school_entities = [
-    *school_router_secondary_school_entities
-]
+comparison_router_secondary_school_entities = [*school_router_secondary_school_entities]
 
 
 @comparison_router.get("/")
-def route_comparison(rspo: List[str] = Query(default=[]), db: Session = Depends(get_db)):
+def route_comparison(
+    rspo: List[str] = Query(default=[]), db: Session = Depends(get_db)
+):
     if len(rspo) > 5 or len(rspo) < 0:
-        raise HTTPException(status_code=422, detail="You need to select up to 5 institutions to compare")
+        raise HTTPException(
+            status_code=422, detail="You need to select up to 5 institutions to compare"
+        )
 
     try:
         institutions = (
