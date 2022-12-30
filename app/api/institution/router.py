@@ -71,7 +71,7 @@ def route_comparison(
         raise HTTPException(status_code=404, detail="No schools found")
 
 
-@school_router.get("/{rspo}", response_model=SingleSchoolResponseSchema)
+@school_router.get("/{rspo}")
 def route_get_single_school(rspo: str, db: Session = Depends(get_db)):
     try:
         institution = (
@@ -82,17 +82,29 @@ def route_get_single_school(rspo: str, db: Session = Depends(get_db)):
             .one()
         )
 
-        classes = (
-            query_current_classes(db)
+        classes_list = (
+            db.query(SecondarySchoolInstitutionClass)
             .with_entities(
                 SecondarySchoolInstitutionClass.extended_subjects,
                 SecondarySchoolInstitutionClass.class_name,
+                SecondarySchoolInstitutionClass.year,
+                SecondarySchoolInstitutionClass.points_stats_min,
+                SecondarySchoolInstitutionClass.class_symbol,
+                SecondarySchoolInstitutionClass.available_languages,
             )
             .filter(
                 SecondarySchoolInstitutionClass.institution_rspo == institution.rspo
             )
             .all()
         )
+
+        classes = {}
+        for class_ in classes_list:
+            print(class_)
+            if class_.year in classes:
+                classes[class_.year].append(class_)
+            else:
+                classes[class_.year] = [class_]
 
         return {**dict(institution), "classes": classes}
 

@@ -72,6 +72,9 @@ class SecondarySchoolInstitution(Institution):
     class_profiles = Column(ARRAY(String))
     extracurricular_activities = Column(ARRAY(String))
 
+    def get_classes(self):
+        return
+
 
 def query_institutions(db: Session, entities):
     return (
