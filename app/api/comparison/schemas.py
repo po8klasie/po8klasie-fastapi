@@ -1,11 +1,24 @@
-from typing import Optional
+from __future__ import annotations
 
-from app.api.search.schemas import SearchListItemSchema
+from typing import List
+
+from app.api.comparison.comparison_utils import ComparisonResultEnum
+from app.lib.router_utils import CamelCasedModel
 
 
-class SingleSchoolResponseSchema(SearchListItemSchema):
-    email: str
-    phone: str
-    website: str
-    postal_code: str
-    description: Optional[str]
+class ComparisonItemSchema(CamelCasedModel):
+    value: int | str
+    comparison_result: ComparisonResultEnum
+
+
+class ComparisonItemsSchema(CamelCasedModel):
+    is_public: ComparisonItemSchema
+    city: ComparisonItemSchema
+    available_languages: List[ComparisonItemSchema]
+    classes: List[ComparisonItemSchema]
+
+
+class ComparisonInstitutionSchema(CamelCasedModel):
+    name: str
+    rspo: str
+    comparison: ComparisonItemsSchema
