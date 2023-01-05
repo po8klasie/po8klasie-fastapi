@@ -127,31 +127,37 @@ def route_search_map_features(
     query: str | None = None,
     languages: List[str] = Query(None),
     points_threshold: List[int] = Query(None),
+    layers_ids: List[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    bbox_polygon_wkt = bbox_str_to_polygon_wkt(bbox)
 
-    response = {}
+    response = {"institutions": None, "roadAccidents": None}
 
-    institutions = filter_institutions(
-        db,
-        query=query,
-        project_id=project_id,
-        is_public=is_public,
-        languages=languages,
-        points_threshold=points_threshold,
-        bbox=bbox,
-    ).with_entities(
-        SecondarySchoolInstitution.rspo,
-        RspoInstitution.name,
-        SecondarySchoolInstitution.geometry,
+    institutions = (
+        filter_institutions(
+            db,
+            query=query,
+            project_id=project_id,
+            is_public=is_public,
+            languages=languages,
+            points_threshold=points_threshold,
+            bbox=bbox,
+        )
+        .with_entities(
+            SecondarySchoolInstitution.rspo,
+            RspoInstitution.name,
+            SecondarySchoolInstitution.geometry,
+        )
+        .all()
     )
 
     response["institutions"] = GeoJsonFeatureCollection(
         institution_models_to_features(institutions)
     )
 
-    if True:
+    if bbox and layers_ids and "roadAccidents" in layers_ids:
+        print("road acc")
+        bbox_polygon_wkt = bbox_str_to_polygon_wkt(bbox)
         road_accidents = (
             db.query(RoadAccident)
             .filter(RoadAccident.geometry.ST_Within(bbox_polygon_wkt))
