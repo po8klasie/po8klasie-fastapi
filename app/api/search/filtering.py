@@ -17,7 +17,6 @@ search_router_secondary_school_entities = [
     SecondarySchoolInstitution.points_stats_max,
     SecondarySchoolInstitution.institution_type_generalized,
     SecondarySchoolInstitution.available_languages,
-    SecondarySchoolInstitution.points_stats_min,
     RspoInstitution.name,
     RspoInstitution.street,
     RspoInstitution.building_number,
@@ -28,6 +27,7 @@ search_router_secondary_school_entities = [
     RspoInstitution.longitude,
     RspoInstitution.borough,
     RspoInstitution.city,
+    RspoInstitution.rspo_institution_type
 ]
 
 
@@ -59,7 +59,7 @@ def filter_by_points_threshold(institutions, points_threshold: [int, int]):
     return institutions.filter(
         and_(
             SecondarySchoolInstitution.points_stats_min >= threshold_min,
-            # SecondarySchoolInstitution.points_stats_max <= threshold_max
+            SecondarySchoolInstitution.points_stats_min <= threshold_max
         )
     )
 
@@ -71,6 +71,7 @@ def filter_institutions(
     languages: Optional[List[str]] = None,
     points_threshold: Optional[List[int]] = None,
     is_public: Optional[bool] = None,
+    rspo_institution_type: Optional[List[str]] = None,
     bbox: Optional[str] = None,
 ):
     institutions = query_secondary_school_institutions(
@@ -93,6 +94,9 @@ def filter_institutions(
 
     if is_public is not None:
         institutions = institutions.filter(RspoInstitution.is_public == is_public)
+
+    if rspo_institution_type:
+        institutions = institutions.filter(RspoInstitution.rspo_institution_type.in_(rspo_institution_type))
 
     if bbox:
         bbox_polygon_wkt = bbox_str_to_polygon_wkt(bbox)

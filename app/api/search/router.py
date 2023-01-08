@@ -85,6 +85,7 @@ def route_search_institutions(
     query: str | None = None,
     languages: List[str] = Query(None),
     points_threshold: List[int] = Query(None),
+    rspo_institution_type: List[str] = Query(None),
     db: Session = Depends(get_db),
 ):
     institutions = filter_institutions(
@@ -94,6 +95,7 @@ def route_search_institutions(
         is_public=is_public,
         languages=languages,
         points_threshold=points_threshold,
+        rspo_institution_type=rspo_institution_type,
         bbox=bbox,
     ).order_by(
         func.array_length(SecondarySchoolInstitution.available_extended_subjects, 1)
@@ -127,6 +129,7 @@ def route_search_map_features(
     query: str | None = None,
     languages: List[str] = Query(None),
     points_threshold: List[int] = Query(None),
+    rspo_institution_type: List[str] = Query(None),
     layers_ids: List[str] = Query(None),
     db: Session = Depends(get_db),
 ):
@@ -141,6 +144,7 @@ def route_search_map_features(
             is_public=is_public,
             languages=languages,
             points_threshold=points_threshold,
+            rspo_institution_type=rspo_institution_type,
             bbox=bbox,
         )
         .with_entities(
