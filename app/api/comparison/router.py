@@ -72,7 +72,7 @@ def route_comparison(
             institutions, property_key="available_languages"
         )
         classes_intersection = find_intersection(
-            institutions, getter_fn=lambda rspo: classes_by_rspo[rspo]
+            institutions, getter_fn=lambda rspo: classes_by_rspo.get(rspo)
         )
 
         for institution in institutions:

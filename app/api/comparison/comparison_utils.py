@@ -30,7 +30,7 @@ def find_intersection(institutions, property_key=None, getter_fn=None) -> set:
 
         if property_key:
             institution = institutions[idx]
-            value = getattr(institution, property_key)
+            value = getattr(institution, property_key, None)
         if getter_fn:
             value = getter_fn(institutions[idx].rspo)
 
