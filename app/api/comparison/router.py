@@ -89,7 +89,7 @@ def route_comparison(
                         available_languages_intersection,
                     ),
                     "classes": get_comparison_item(
-                        classes_by_rspo[institution.rspo], classes_intersection
+                        classes_by_rspo.get(institution.rspo, []), classes_intersection
                     ),
                 },
             }
