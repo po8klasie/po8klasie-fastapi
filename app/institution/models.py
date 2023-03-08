@@ -72,6 +72,18 @@ class SecondarySchoolInstitution(Institution):
     class_profiles = Column(ARRAY(String))
     extracurricular_activities = Column(ARRAY(String))
 
+    school_events = Column(ARRAY(String))
+    sport_infrastructure = Column(ARRAY(String))
+    NGO_partners = Column(ARRAY(String))
+    university_partners = Column(ARRAY(String))
+    avg_students_no_per_class = Column(Integer)
+    max_students_no_per_class = Column(Integer)
+    min_students_no_per_class = Column(Integer)
+    no_of_students_taking_part_in_olympiads = Column(String)
+    no_of_internal_competitions = Column(String)
+    no_of_school_trips_per_year = Column(String)
+    no_of_fulltime_psychologist_positions = Column(Float)
+
     def get_classes(self):
         return
 
