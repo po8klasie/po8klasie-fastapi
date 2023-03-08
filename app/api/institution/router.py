@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
-from app.api.institution.schemas import SingleSchoolResponseSchema
+from app.api.institution.schemas import SingleInstitutionResponseSchema
 from app.institution_classes.models import (
     query_current_classes,
     SecondarySchoolInstitutionClass,
@@ -47,7 +47,7 @@ school_router_secondary_school_entities = [
 ]
 
 
-@school_router.get("/", response_model=List[SingleSchoolResponseSchema])
+@school_router.get("/", response_model=List[SingleInstitutionResponseSchema])
 def route_get_schools(db: Session = Depends(get_db)):
     return query_secondary_school_institutions(
         db, school_router_secondary_school_entities
@@ -88,7 +88,7 @@ def route_comparison(
         raise HTTPException(status_code=404, detail="No schools found")
 
 
-@school_router.get("/{rspo}")
+@school_router.get("/{rspo}", response_model=SingleInstitutionResponseSchema)
 def route_get_single_school(rspo: str, db: Session = Depends(get_db)):
     try:
         institution = (
