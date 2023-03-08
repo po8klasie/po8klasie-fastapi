@@ -27,6 +27,23 @@ school_router_secondary_school_entities = [
     RspoInstitution.website,
     SecondarySchoolInstitution.description,
     SecondarySchoolInstitution.class_profiles,
+    # education offer section
+    SecondarySchoolInstitution.extracurricular_activities,
+    SecondarySchoolInstitution.school_events,
+    SecondarySchoolInstitution.no_of_school_trips_per_year,
+    # sport section
+    SecondarySchoolInstitution.sport_activities,
+    SecondarySchoolInstitution.sport_infrastructure,
+    # partners section
+    SecondarySchoolInstitution.NGO_partners,
+    SecondarySchoolInstitution.university_partners,
+    # students stats section
+    SecondarySchoolInstitution.avg_students_no_per_class,
+    SecondarySchoolInstitution.min_students_no_per_class,
+    SecondarySchoolInstitution.max_students_no_per_class,
+    SecondarySchoolInstitution.no_of_students_taking_part_in_olympiads,
+    # student support section
+    SecondarySchoolInstitution.no_of_fulltime_psychologist_positions,
 ]
 
 
