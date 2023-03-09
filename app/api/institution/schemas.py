@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Any
 
 from app.api.search.schemas import SearchListItemSchema
+from app.public_transport_info.schemas import InstitutionPublicTransportStopAssociationSchema
 
 
 class SingleInstitutionResponseSchema(SearchListItemSchema):
@@ -30,4 +31,4 @@ class SingleInstitutionResponseSchema(SearchListItemSchema):
     no_of_fulltime_psychologist_positions: float | None
 
     classes: Any
-    public_transport_stops: Any
+    public_transport_stops: List[InstitutionPublicTransportStopAssociationSchema]

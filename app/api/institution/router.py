@@ -1,3 +1,4 @@
+import itertools
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -9,6 +10,8 @@ from app.institution_classes.models import (
     query_current_classes,
     SecondarySchoolInstitutionClass,
 )
+from app.public_transport_info.models import InstitutionPublicTransportStopAssociation
+from app.public_transport_info.schemas import InstitutionPublicTransportStopAssociationSchema
 from app.rspo_institution.models import RspoInstitution
 from app.api.search.filtering import search_router_secondary_school_entities
 from db.db import get_db
@@ -56,7 +59,7 @@ def route_get_schools(db: Session = Depends(get_db)):
 
 @school_router.get("/multiple")
 def route_comparison(
-    rspo: List[str] = Query(default=[]), db: Session = Depends(get_db)
+        rspo: List[str] = Query(default=[]), db: Session = Depends(get_db)
 ):
     if len(rspo) == 0:
         raise HTTPException(status_code=422, detail="No rspos provided")
@@ -101,29 +104,26 @@ def route_get_single_school(rspo: str, db: Session = Depends(get_db)):
 
         classes_list = (
             db.query(SecondarySchoolInstitutionClass)
-            .with_entities(
-                SecondarySchoolInstitutionClass.extended_subjects,
-                SecondarySchoolInstitutionClass.class_name,
-                SecondarySchoolInstitutionClass.year,
-                SecondarySchoolInstitutionClass.points_stats_min,
-                SecondarySchoolInstitutionClass.class_symbol,
-                SecondarySchoolInstitutionClass.available_languages,
-            )
             .filter(
                 SecondarySchoolInstitutionClass.institution_rspo == institution.rspo
             )
+            .order_by(SecondarySchoolInstitutionClass.year)
             .all()
         )
 
-        classes = {}
-        for class_ in classes_list:
-            print(class_)
-            if class_.year in classes:
-                classes[class_.year].append(class_)
-            else:
-                classes[class_.year] = [class_]
+        classes = {k: list(g) for k, g in itertools.groupby(classes_list, lambda c: c.year)}
 
-        return {**dict(institution), "classes": classes}
+        public_transport_stops = (
+            db.query(InstitutionPublicTransportStopAssociation)
+            .filter_by(institution_rspo=rspo)
+            .all()
+        )
+
+        return {
+            **dict(institution),
+            "classes": classes,
+            "public_transport_stops": public_transport_stops
+        }
 
     except NoResultFound:
         raise HTTPException(status_code=404, detail="No school found")
