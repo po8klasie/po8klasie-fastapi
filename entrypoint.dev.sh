@@ -10,4 +10,4 @@ while ! </dev/tcp/db/5432; do
   sleep 1
 done
 
-uvicorn app.main:app --host 0.0.0.0 --reload
+uvicorn po8klasie_fastapi.app.main:app --host 0.0.0.0 --reload
