@@ -1,29 +1,25 @@
-# po8klasie-api
+# po8klasie-fastapi
 
 
 ## Local quick start
 
-1. `docker-compose -f docker-compose.local.yml up --build`
-2. Inside docker container `./run.py regenerate_db`
+Run the app `docker-compose -f docker-compose.local.yml up --build`
 
-## Database
 
-We use [CockroachDB](https://github.com/cockroachdb/cockroach) which is compatible with Postgres.
+## Data management
+
+You can populate db using [po8klasie-data-management-example repo](https://github.com/po8klasie/po8klasie-data-management-example) 
+
+More info about:
+* how we add data to the db
+* how you can integrate your own data with po8klasie backend
+
+is available in [po8klasie-data-sources repo](https://github.com/po8klasie/po8klasie-data-sources) 
+
 
 ## Env vars
 
-- `DATABASE_URL`
-
-
-## Commands
-
-`./run.py <command>`
-
-### `regenerate_db`
-
-Bootstrap db. Run all jobs
-
-
-## Data patches
-In some cases we want to overwrite institutions data which has been fetched from the APIs.
-To do so, please edit `app/institution/data_patches/patches.yml`
+* `DATABASE_URL` required
+* `TEST_DATABASE_URL` database for tests (optional)
+* `SENTRY_DSN` (optional)
+* `ENVIRONMENT` (optional)
