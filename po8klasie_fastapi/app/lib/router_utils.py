@@ -17,6 +17,13 @@ class CamelCasedModel(BaseModel):
         allow_population_by_field_name = True
 
 
+def camel_case_model(model):
+    class MyModel(model, CamelCasedModel):
+        pass
+
+    return MyModel
+
+
 T = TypeVar("T")
 
 
