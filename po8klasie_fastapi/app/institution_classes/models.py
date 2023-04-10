@@ -1,7 +1,7 @@
 import uuid
 
-from sqlalchemy import Column, ForeignKey, String, Float, ARRAY, Integer
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, ForeignKey, String, Float, Integer
+from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
 
 from po8klasie_fastapi.db.base import Base

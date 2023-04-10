@@ -1,6 +1,10 @@
 from typing import Iterable
 
-from geojson import Feature as GeoJsonFeature, Point as GeoJsonPoint
+from geojson import (
+    Feature as GeoJsonFeature,
+    Point as GeoJsonPoint,
+    FeatureCollection as GeoJsonFeatureCollection,
+)
 
 from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
 from po8klasie_fastapi.app.road_accident.models import RoadAccident
@@ -28,6 +32,15 @@ def road_accident_models_to_features(road_accidents: Iterable[RoadAccident]):
             },
             geometry=GeoJsonPoint(get_point_coords(road_accident.geometry)),
         )
+
+
+def get_road_accidents_collection(db, bbox_polygon_wkt: str):
+    road_accidents = (
+        db.query(RoadAccident)
+        .filter(RoadAccident.geometry.ST_Within(bbox_polygon_wkt))
+        .all()
+    )
+    return GeoJsonFeatureCollection(road_accident_models_to_features(road_accidents))
 
 
 def institution_models_to_features(institutions: Iterable[SecondarySchoolInstitution]):

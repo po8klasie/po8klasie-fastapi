@@ -53,51 +53,47 @@ def group_classes_by_rspo(db, rspos: List[str]):
 def route_comparison(
     rspo: List[str] = Query(default=[]), db: Session = Depends(get_db)
 ):
-    if len(rspo) > 5:
+    if len(rspo) > 5 or len(rspo) == 0:
         raise HTTPException(
             status_code=422, detail="You can select up to 5 institutions to compare"
         )
 
-    try:
-        institutions: List[SecondarySchoolInstitution] = (
-            query_secondary_school_institutions(
-                db, school_router_secondary_school_entities
-            )
-            .filter(SecondarySchoolInstitution.rspo.in_(rspo))
-            .all()
-        )
-        rspos = [institution.rspo for institution in institutions]
-        classes_by_rspo = group_classes_by_rspo(db, rspos)
+    institutions: List[SecondarySchoolInstitution] = (
+        query_secondary_school_institutions(db, school_router_secondary_school_entities)
+        .filter(SecondarySchoolInstitution.rspo.in_(rspo))
+        .all()
+    )
 
-        city_intersection = find_intersection(institutions, property_key="city")
-        is_public_intersection = find_intersection(
-            institutions, property_key="is_public"
-        )
-        available_languages_intersection = find_intersection(
-            institutions, property_key="available_languages"
-        )
-        classes_intersection = find_intersection(
-            institutions, getter_fn=lambda rspo: classes_by_rspo.get(rspo)
-        )
+    if len(institutions) != len(rspo):
+        raise HTTPException(status_code=404, detail="School(s) not found")
 
-        for institution in institutions:
-            yield {
-                "name": institution.name,
-                "rspo": institution.rspo,
-                "comparison": {
-                    "is_public": get_comparison_item(
-                        institution.is_public, is_public_intersection
-                    ),
-                    "city": get_comparison_item(institution.city, city_intersection),
-                    "available_languages": get_comparison_item(
-                        institution.available_languages,
-                        available_languages_intersection,
-                    ),
-                    "classes": get_comparison_item(
-                        classes_by_rspo.get(institution.rspo, []), classes_intersection
-                    ),
-                },
-            }
+    rspos = [institution.rspo for institution in institutions]
+    classes_by_rspo = group_classes_by_rspo(db, rspos)
 
-    except NoResultFound:
-        raise HTTPException(status_code=404, detail="No schools found")
+    city_intersection = find_intersection(institutions, property_key="city")
+    is_public_intersection = find_intersection(institutions, property_key="is_public")
+    available_languages_intersection = find_intersection(
+        institutions, property_key="available_languages"
+    )
+    classes_intersection = find_intersection(
+        institutions, getter_fn=lambda rspo: classes_by_rspo.get(rspo)
+    )
+
+    for institution in institutions:
+        yield {
+            "name": institution.name,
+            "rspo": institution.rspo,
+            "comparison": {
+                "is_public": get_comparison_item(
+                    institution.is_public, is_public_intersection
+                ),
+                "city": get_comparison_item(institution.city, city_intersection),
+                "available_languages": get_comparison_item(
+                    institution.available_languages,
+                    available_languages_intersection,
+                ),
+                "classes": get_comparison_item(
+                    classes_by_rspo.get(institution.rspo, []), classes_intersection
+                ),
+            },
+        }
