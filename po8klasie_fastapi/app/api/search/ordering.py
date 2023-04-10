@@ -1,4 +1,4 @@
-from sqlalchemy import func, desc
+from sqlalchemy import desc, func
 
 from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
 

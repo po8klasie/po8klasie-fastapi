@@ -1,17 +1,12 @@
 from typing import Iterable
 
-from geojson import (
-    Feature as GeoJsonFeature,
-    Point as GeoJsonPoint,
-    FeatureCollection as GeoJsonFeatureCollection,
-)
+import shapely.geometry
+from geojson import Feature as GeoJsonFeature
+from geojson import FeatureCollection as GeoJsonFeatureCollection
+from geojson import Point as GeoJsonPoint
 
 from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
 from po8klasie_fastapi.app.road_accident.models import RoadAccident
-
-
-import shapely.geometry
-
 from po8klasie_fastapi.db.postgis_utils import get_point_coords
 
 bbox_regex = r"^\d+\.\d+,\d+\.\d+,\d+\.\d+,\d+\.\d+$"

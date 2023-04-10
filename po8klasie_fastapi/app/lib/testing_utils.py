@@ -5,12 +5,11 @@ import factory
 import faker
 from faker_education import SchoolProvider
 from fastapi.testclient import TestClient as FastApiTestClient
+from sqlalchemy import MetaData, create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 from po8klasie_fastapi.app.config import settings
-
 from po8klasie_fastapi.db.db import get_db
-from sqlalchemy import create_engine, MetaData
-from sqlalchemy.orm import sessionmaker, scoped_session
 
 if not settings.test_db_url:
     raise KeyError("TEST_DATABASE_URL not specified")

@@ -1,7 +1,7 @@
 import factory
 
+from po8klasie_fastapi.app.lib.testing_utils import BaseFactory, fake, fake_rspo
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
-from po8klasie_fastapi.app.lib.testing_utils import fake_rspo, fake, BaseFactory
 
 
 class RspoInstitutionFactory(BaseFactory):

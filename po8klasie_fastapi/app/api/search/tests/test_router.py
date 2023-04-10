@@ -1,7 +1,7 @@
 from po8klasie_fastapi.app.lib.testing_utils import (
+    ClientTestCase,
     TestingFixtures,
     get_test_db,
-    ClientTestCase,
 )
 from po8klasie_fastapi.db.models import RoadAccident
 

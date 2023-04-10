@@ -1,4 +1,4 @@
-from random import randint, choice
+from random import choice, randint
 from string import ascii_uppercase
 
 import factory

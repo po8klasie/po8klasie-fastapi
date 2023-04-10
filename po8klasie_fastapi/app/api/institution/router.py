@@ -8,22 +8,22 @@ from sqlalchemy.orm import Session
 from po8klasie_fastapi.app.api.institution.schemas import (
     SingleInstitutionResponseSchema,
 )
+from po8klasie_fastapi.app.api.search.filtering import (
+    search_router_secondary_school_entities,
+)
+from po8klasie_fastapi.app.institution.models import (
+    SecondarySchoolInstitution,
+    query_secondary_school_institutions,
+)
 from po8klasie_fastapi.app.institution_classes.models import (
-    query_current_classes,
     SecondarySchoolInstitutionClass,
+    query_current_classes,
 )
 from po8klasie_fastapi.app.public_transport_info.models import (
     InstitutionPublicTransportStopAssociation,
 )
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
-from po8klasie_fastapi.app.api.search.filtering import (
-    search_router_secondary_school_entities,
-)
 from po8klasie_fastapi.db.db import get_db
-from po8klasie_fastapi.app.institution.models import (
-    SecondarySchoolInstitution,
-    query_secondary_school_institutions,
-)
 
 school_router = APIRouter()
 

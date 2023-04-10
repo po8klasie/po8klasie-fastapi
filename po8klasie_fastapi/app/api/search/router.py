@@ -2,21 +2,22 @@ from __future__ import annotations
 
 from typing import List
 
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from geojson import FeatureCollection as GeoJsonFeatureCollection
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from po8klasie_fastapi.app.api.search.filtering import (
-    filter_by_query,
-    filter_by_project_id,
-    search_router_secondary_school_entities,
-    filter_institutions,
     FiltersQuerySchema,
+    filter_by_project_id,
+    filter_by_query,
+    filter_institutions,
+    search_router_secondary_school_entities,
 )
 from po8klasie_fastapi.app.api.search.map_features import (
     bbox_str_to_polygon_wkt,
-    institution_models_to_features,
     get_road_accidents_collection,
+    institution_models_to_features,
 )
 from po8klasie_fastapi.app.api.search.ordering import order_institutions
 from po8klasie_fastapi.app.api.search.schemas import (
@@ -32,9 +33,6 @@ from po8klasie_fastapi.app.institution_classes.models import (
 )
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 from po8klasie_fastapi.db.db import get_db
-from geojson import (
-    FeatureCollection as GeoJsonFeatureCollection,
-)
 
 search_router = APIRouter()
 

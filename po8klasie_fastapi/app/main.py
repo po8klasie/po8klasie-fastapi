@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
+
 from po8klasie_fastapi.app.api.api_router import api_router
 from po8klasie_fastapi.app.config import settings
 from po8klasie_fastapi.app.sentry import setup_sentry

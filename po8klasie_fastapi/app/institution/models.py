@@ -1,20 +1,12 @@
-from geoalchemy2 import Geometry
-from sqlalchemy import (
-    Column,
-    ForeignKey,
-    String,
-    Float,
-    Integer,
-    Enum,
-)
-from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.orm import relationship, Session
+import enum
 
-from po8klasie_fastapi.db.base import Base
+from geoalchemy2 import Geometry
+from sqlalchemy import Column, Enum, Float, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.orm import Session, relationship
 
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
-
-import enum
+from po8klasie_fastapi.db.base import Base
 
 
 class InstitutionTypeGeneralizedEnum(enum.Enum):

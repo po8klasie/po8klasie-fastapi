@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Date, ARRAY, Float, Boolean
+from sqlalchemy import ARRAY, Boolean, Column, Date, Float, String
 
 from po8klasie_fastapi.db.base import Base
 

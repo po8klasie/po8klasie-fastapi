@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Any
+from typing import Any, List
 
 from po8klasie_fastapi.app.api.search.schemas import SearchListItemSchema
 from po8klasie_fastapi.app.public_transport_info.schemas import (

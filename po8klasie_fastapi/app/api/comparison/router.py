@@ -9,18 +9,18 @@ from po8klasie_fastapi.app.api.comparison.comparison_utils import (
     get_comparison_item,
 )
 from po8klasie_fastapi.app.api.comparison.schemas import ComparisonInstitutionSchema
-from po8klasie_fastapi.app.institution_classes.models import (
-    query_current_classes,
-    SecondarySchoolInstitutionClass,
-)
 from po8klasie_fastapi.app.api.institution.router import (
     school_router_secondary_school_entities,
 )
-from po8klasie_fastapi.db.db import get_db
 from po8klasie_fastapi.app.institution.models import (
     SecondarySchoolInstitution,
     query_secondary_school_institutions,
 )
+from po8klasie_fastapi.app.institution_classes.models import (
+    SecondarySchoolInstitutionClass,
+    query_current_classes,
+)
+from po8klasie_fastapi.db.db import get_db
 
 comparison_router = APIRouter()
 

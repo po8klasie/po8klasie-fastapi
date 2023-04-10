@@ -1,7 +1,7 @@
+from geoalchemy2 import Geometry
 from sqlalchemy import Column, String
 
 from po8klasie_fastapi.db.base import Base
-from geoalchemy2 import Geometry
 
 
 class RoadAccident(Base):

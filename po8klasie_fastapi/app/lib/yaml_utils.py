@@ -1,5 +1,4 @@
 import yaml
-
 from cli.cli_logger import cli_logger
 
 

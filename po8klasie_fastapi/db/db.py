@@ -3,7 +3,6 @@ from sqlalchemy.orm import sessionmaker
 
 from po8klasie_fastapi.app.config import settings
 
-
 engine = create_engine(settings.db_url)
 
 SessionLocal = sessionmaker(bind=engine)

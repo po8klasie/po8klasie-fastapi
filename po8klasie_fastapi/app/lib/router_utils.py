@@ -1,9 +1,10 @@
 from re import sub
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
 
 from fastapi import Query
+from fastapi_pagination.default import Page as BasePage
+from fastapi_pagination.default import Params as BaseParams
 from pydantic import BaseModel
-from fastapi_pagination.default import Page as BasePage, Params as BaseParams
 
 
 def camel_case(s):

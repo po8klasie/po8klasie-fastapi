@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 
+from po8klasie_fastapi.app.api.app_info.router import app_info_router
 from po8klasie_fastapi.app.api.comparison.router import comparison_router
 from po8klasie_fastapi.app.api.institution.router import school_router
-from po8klasie_fastapi.app.api.search.router import search_router
-from po8klasie_fastapi.app.api.app_info.router import app_info_router
 from po8klasie_fastapi.app.api.project.router import project_router
+from po8klasie_fastapi.app.api.search.router import search_router
 
 api_router = APIRouter()
 

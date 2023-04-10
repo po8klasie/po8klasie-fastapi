@@ -1,17 +1,15 @@
 import json
-from typing import Optional, List
+from typing import List, Optional
 
-from pydantic import Field, BaseModel, validator
-from sqlalchemy import func, and_, or_
+from pydantic import BaseModel, Field, validator
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 
 from po8klasie_fastapi.app.api.search.map_features import (
-    bbox_str_to_polygon_wkt,
     bbox_regex,
+    bbox_str_to_polygon_wkt,
 )
-from po8klasie_fastapi.app.institution.models import (
-    SecondarySchoolInstitution,
-)
+from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
 from po8klasie_fastapi.app.institution_classes.models import (
     SecondarySchoolInstitutionClass,
 )

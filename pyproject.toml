@@ -23,6 +23,7 @@ uvicorn = {extras = ["standard"], version = "^0.21.0"}
 fastapi-pagination = {extras = ["sqlalchemy"], version = "^0.11.4"}
 factory-boy = "^3.2.1"
 faker-education = "^1.2.1"
+isort = "^5.12.0"
 
 [tool.poetry.dev-dependencies]
 black = "^23.1.0"
@@ -32,6 +33,9 @@ pytest = "^7.2.2"
 
 [tool.poetry.group.dev.dependencies]
 httpx = "^0.23.3"
+
+[tool.isort]
+profile = "black"
 
 [build-system]
 requires = ["poetry-core>=1.4.0"]

@@ -4,13 +4,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from po8klasie_fastapi.app.lib.router_utils import camel_case_model
+from po8klasie_fastapi.app.project.models import Project
 from po8klasie_fastapi.app.project.schemas import (
     ProjectSchema,
     SchoolViewConfigSchema,
     SearchViewConfigSchema,
 )
 from po8klasie_fastapi.db.db import get_db
-from po8klasie_fastapi.app.project.models import Project
 
 project_router = APIRouter()
 

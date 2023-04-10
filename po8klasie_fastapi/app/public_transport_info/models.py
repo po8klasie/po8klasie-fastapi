@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Float, ForeignKey, Integer, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import String
+
 from po8klasie_fastapi.db.base import Base
 
 public_transport_stop_route_association_table = Table(

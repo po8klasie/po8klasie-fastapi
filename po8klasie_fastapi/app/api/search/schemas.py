@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import List, Optional
 
 from po8klasie_fastapi.app.institution.models import InstitutionTypeGeneralizedEnum
 from po8klasie_fastapi.app.lib.router_utils import CamelCasedModel

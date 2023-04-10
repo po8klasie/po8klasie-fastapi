@@ -1,9 +1,9 @@
 from po8klasie_fastapi.app.api.search.filtering import (
-    filter_by_query,
-    filter_by_project_id,
+    filter_by_extended_subjects,
     filter_by_languages,
     filter_by_points_threshold,
-    filter_by_extended_subjects,
+    filter_by_project_id,
+    filter_by_query,
 )
 from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
 from po8klasie_fastapi.app.institution.tests.factories import (
@@ -12,9 +12,7 @@ from po8klasie_fastapi.app.institution.tests.factories import (
 from po8klasie_fastapi.app.institution_classes.tests.factories import (
     SecondarySchoolInstitutionClassFactory,
 )
-from po8klasie_fastapi.app.lib.testing_utils import (
-    DatabaseTestCase,
-)
+from po8klasie_fastapi.app.lib.testing_utils import DatabaseTestCase
 from po8klasie_fastapi.app.project.tests.factories import ProjectFactory
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 

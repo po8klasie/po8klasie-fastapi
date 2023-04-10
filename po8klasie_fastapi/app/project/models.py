@@ -1,6 +1,7 @@
 from sqlalchemy import Column
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.types import String
+
 from po8klasie_fastapi.db.base import Base
 
 
