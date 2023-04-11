@@ -28,6 +28,9 @@ from po8klasie_fastapi.app.institution.models import (
     SecondarySchoolInstitution,
     query_secondary_school_institutions,
 )
+from po8klasie_fastapi.app.institution_classes.consts import (
+    INSTITUTION_CLASSES_CURRENT_YEAR,
+)
 from po8klasie_fastapi.app.institution_classes.models import (
     SecondarySchoolInstitutionClass,
 )
@@ -85,21 +88,20 @@ def route_search_institutions(
     institutions = filter_institutions(db, filters_query)
     institutions = order_institutions(institutions)
 
-    institutions_with_classes = (
-        institutions.join(RspoInstitution)
-        .join(SecondarySchoolInstitutionClass)
-        .filter(SecondarySchoolInstitutionClass.year == 2022)
-        .with_entities(
-            RspoInstitution,
-            SecondarySchoolInstitution,
-            SecondarySchoolInstitutionClass.extended_subjects,
+    # TODO(micorix): Make it more performant
+    for institution in institutions:
+        classes = (
+            db.query(SecondarySchoolInstitutionClass)
+            .filter(
+                SecondarySchoolInstitutionClass.institution_rspo == institution.rspo,
+                SecondarySchoolInstitutionClass.year
+                == INSTITUTION_CLASSES_CURRENT_YEAR,
+            )
+            .all()
         )
-        .all()
-    )
 
-    for rspo_institution, institution, classes in institutions_with_classes:
         yield {
-            **RspoInstitutionSchema.from_orm(rspo_institution).dict(),
+            **RspoInstitutionSchema.from_orm(institution.rspo_institution).dict(),
             **SecondarySchoolInstitutionSchema.from_orm(institution).dict(),
             "classes": classes,
         }

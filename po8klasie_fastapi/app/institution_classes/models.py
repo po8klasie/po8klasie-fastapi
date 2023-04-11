@@ -4,6 +4,9 @@ from sqlalchemy import Column, Float, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import relationship
 
+from po8klasie_fastapi.app.institution_classes.consts import (
+    INSTITUTION_CLASSES_CURRENT_YEAR,
+)
 from po8klasie_fastapi.db.base import Base
 
 
@@ -35,5 +38,5 @@ class SecondarySchoolInstitutionClass(Base):
 
 def query_current_classes(db):
     return db.query(SecondarySchoolInstitutionClass).filter(
-        SecondarySchoolInstitutionClass.year == 2022
+        SecondarySchoolInstitutionClass.year == INSTITUTION_CLASSES_CURRENT_YEAR
     )

@@ -55,11 +55,3 @@ class SearchListItemSchema(CamelCasedModel):
 
     latitude: float
     longitude: float
-
-    borough: str
-    city: str
-
-    classes: List[InstitutionClass]
-
-    class Config:
-        orm_mode = True

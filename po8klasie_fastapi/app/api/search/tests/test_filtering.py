@@ -9,6 +9,9 @@ from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
 from po8klasie_fastapi.app.institution.tests.factories import (
     SecondarySchoolInstitutionFactory,
 )
+from po8klasie_fastapi.app.institution_classes.models import (
+    SecondarySchoolInstitutionClass,
+)
 from po8klasie_fastapi.app.institution_classes.tests.factories import (
     SecondarySchoolInstitutionClassFactory,
 )
@@ -19,7 +22,11 @@ from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 
 class SingleFilterTestCase(DatabaseTestCase):
     def _query_db(self):
-        return self.session.query(SecondarySchoolInstitution).join(RspoInstitution)
+        return (
+            self.session.query(SecondarySchoolInstitution)
+            .join(RspoInstitution)
+            .outerjoin(SecondarySchoolInstitutionClass)
+        )
 
     def assertRspos(self, filtered_results, rspos):
         return self.assertCountEqual([inst.rspo for inst in filtered_results], rspos)
@@ -168,74 +175,58 @@ class ExtendedSubjectsFilterTestCase(SingleFilterTestCase):
         for rspo in rspos:
             SecondarySchoolInstitutionFactory(rspo=rspo)
 
-    def test_filter_single_value(self):
-        self._create_secondary_schools_by_rspos(["foo", "bar"])
-
-        SecondarySchoolInstitutionClassFactory(
-            extended_subjects=["english", "math"], year=2023, institution_rspo="foo"
-        )
-
-        SecondarySchoolInstitutionClassFactory(
-            extended_subjects=["polish", "art"], year=2023, institution_rspo="bar"
-        )
-
-        filtered_results = self._get_filtered_results([["english"]])
-
-        self.assertRspos(filtered_results, ["foo"])
-
     def test_filter_exclusive_subjects_per_class(self):
         self._create_secondary_schools_by_rspos(["foo", "bar", "fizz"])
 
         SecondarySchoolInstitutionClassFactory(
-            extended_subjects=["english", "math"], year=2023, institution_rspo="foo"
+            extended_subjects=["english", "math"], year=2022, institution_rspo="foo"
         )
 
         SecondarySchoolInstitutionClassFactory(
-            extended_subjects=["polish", "art"], year=2023, institution_rspo="bar"
+            extended_subjects=["polish", "art"], year=2022, institution_rspo="bar"
         )
 
         SecondarySchoolInstitutionClassFactory(
-            extended_subjects=["french", "history"], year=2023, institution_rspo="fizz"
+            extended_subjects=["french", "history"], year=2022, institution_rspo="fizz"
         )
 
         filtered_results = self._get_filtered_results([["english", "art", "history"]])
 
         self.assertEqual(len(filtered_results), 0)
 
-    def test_filter_single_class(self):
+    def test_filter_multiple_classes(self):
         self._create_secondary_schools_by_rspos(["foo", "bar", "fizz"])
 
         SecondarySchoolInstitutionClassFactory(
-            extended_subjects=["english", "math"], year=2023, institution_rspo="foo"
+            extended_subjects=["english", "math"], year=2022, institution_rspo="foo"
         )
 
         SecondarySchoolInstitutionClassFactory(
-            extended_subjects=["polish", "art"], year=2023, institution_rspo="bar"
+            extended_subjects=["polish", "art"], year=2022, institution_rspo="bar"
         )
 
         SecondarySchoolInstitutionClassFactory(
-            extended_subjects=["french", "history"], year=2023, institution_rspo="fizz"
+            extended_subjects=["french", "history"], year=2022, institution_rspo="fizz"
         )
 
-        filtered_results = self._get_filtered_results([["english"], ["polish"]])
+        filtered_results = self._get_filtered_results(
+            [["english", "math"], ["polish", "art"]]
+        )
+        print(filtered_results)
 
         self.assertRspos(filtered_results, ["foo", "bar"])
 
     def test_filter_current_class(self):
-        self._create_secondary_schools_by_rspos(["foo", "bar", "fizz"])
+        self._create_secondary_schools_by_rspos(["foo", "bar"])
 
         SecondarySchoolInstitutionClassFactory(
             extended_subjects=["polish", "math"], year=2020, institution_rspo="foo"
         )
 
         SecondarySchoolInstitutionClassFactory(
-            extended_subjects=["polish", "art"], year=2023, institution_rspo="bar"
+            extended_subjects=["polish", "math"], year=2022, institution_rspo="bar"
         )
 
-        SecondarySchoolInstitutionClassFactory(
-            extended_subjects=["polish", "history"], year=2023, institution_rspo="fizz"
-        )
+        filtered_results = self._get_filtered_results([["polish", "math"]])
 
-        filtered_results = self._get_filtered_results([["polish"]])
-
-        self.assertRspos(filtered_results, ["bar", "fizz"])
+        self.assertRspos(filtered_results, ["bar"])

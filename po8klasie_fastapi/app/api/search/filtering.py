@@ -1,7 +1,8 @@
 import json
-from typing import List, Optional
+from json import JSONDecodeError
+from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, ValidationError, validator
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 
@@ -10,6 +11,9 @@ from po8klasie_fastapi.app.api.search.map_features import (
     bbox_str_to_polygon_wkt,
 )
 from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
+from po8klasie_fastapi.app.institution_classes.consts import (
+    INSTITUTION_CLASSES_CURRENT_YEAR,
+)
 from po8klasie_fastapi.app.institution_classes.models import (
     SecondarySchoolInstitutionClass,
 )
@@ -36,6 +40,10 @@ search_router_secondary_school_entities = [
 ]
 
 
+class ExtendedSubjectsList(BaseModel):
+    __root__: List[List[str]]
+
+
 class FiltersQuerySchema(BaseModel):
     project_id: str | None = None
     bbox: str | None = Field(regex=bbox_regex, default=None)
@@ -44,13 +52,17 @@ class FiltersQuerySchema(BaseModel):
     languages: Optional[List[str]]
     points_threshold: Optional[List[int]]
     rspo_institution_type: Optional[List[str]]
-    extended_subjects: Optional[List[List[str]]]
+    # XXX(micorix): Have to be Any. Otherwise, query param is not recognized
+    extended_subjects: Optional[Any]
 
     @validator("extended_subjects", pre=True)
-    def preprocess_json(cls, raw: str):
+    def preprocess_extended_subjects(cls, raw: str):
         if not raw:
-            return None
-        return json.loads(raw)
+            return []
+        try:
+            return ExtendedSubjectsList.parse_obj(json.loads(raw)).__root__
+        except (JSONDecodeError, ValidationError):
+            return []
 
 
 def filter_by_query(institutions, query: str):
@@ -108,20 +120,27 @@ def filter_by_extended_subjects(institutions, extended_subjects_list):
 
     for extended_subjects_per_class in extended_subjects_list:
         chainable_filters.append(
-            SecondarySchoolInstitutionClass.extended_subjects.contains(
-                extended_subjects_per_class
+            and_(
+                SecondarySchoolInstitutionClass.extended_subjects.contains(
+                    extended_subjects_per_class
+                ),
+                SecondarySchoolInstitutionClass.extended_subjects.contained_by(
+                    extended_subjects_per_class
+                ),
+                SecondarySchoolInstitutionClass.year
+                == INSTITUTION_CLASSES_CURRENT_YEAR,
             )
         )
 
-    return (
-        institutions.join(SecondarySchoolInstitutionClass)
-        .filter(SecondarySchoolInstitutionClass.year == 2023)
-        .filter(or_(*chainable_filters))
-    )
+    return institutions.filter(or_(*chainable_filters))
 
 
 def filter_institutions(db: Session, filters_query: FiltersQuerySchema):
-    institutions = db.query(SecondarySchoolInstitution).join(RspoInstitution)
+    institutions = (
+        db.query(SecondarySchoolInstitution)
+        .join(RspoInstitution)
+        .outerjoin(SecondarySchoolInstitutionClass)
+    )
 
     if filters_query.project_id:
         institutions = filter_by_project_id(institutions, filters_query.project_id)
