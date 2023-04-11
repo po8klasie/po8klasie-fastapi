@@ -1,3 +1,4 @@
+from geoalchemy2 import Geometry
 from sqlalchemy import Column, Float, ForeignKey, Integer, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import String
@@ -63,6 +64,7 @@ class PublicTransportStop(Base):
     name = Column(String)
     latitude = Column(Float)
     longitude = Column(Float)
+    geometry = Column(Geometry("POINT"))
 
     public_transport_routes = relationship(
         "PublicTransportRoute",
