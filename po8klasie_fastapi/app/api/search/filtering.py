@@ -2,20 +2,23 @@ import json
 from json import JSONDecodeError
 from typing import Any, List, Optional
 
+import shapely
+from fastapi import Query
 from pydantic import BaseModel, Field, ValidationError, validator
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
 
-from po8klasie_fastapi.app.api.search.map_features import (
-    bbox_regex,
-    bbox_str_to_polygon_wkt,
-)
 from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
 from po8klasie_fastapi.app.institution_classes.consts import (
     INSTITUTION_CLASSES_CURRENT_YEAR,
 )
 from po8klasie_fastapi.app.institution_classes.models import (
     SecondarySchoolInstitutionClass,
+)
+from po8klasie_fastapi.app.public_transport_info.models import (
+    InstitutionPublicTransportStopAssociation,
+    PublicTransportRoute,
+    PublicTransportStop,
 )
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 
@@ -39,6 +42,14 @@ search_router_secondary_school_entities = [
     RspoInstitution.rspo_institution_type,
 ]
 
+bbox_regex = r"^\d+\.\d+,\d+\.\d+,\d+\.\d+,\d+\.\d+$"
+
+
+def bbox_str_to_polygon_wkt(bbox_str: str) -> str:
+    bbox = map(float, bbox_str.split(","))
+    polygon = shapely.geometry.box(*bbox, ccw=True)
+    return polygon.wkt
+
 
 class ExtendedSubjectsList(BaseModel):
     __root__: List[List[str]]
@@ -46,12 +57,13 @@ class ExtendedSubjectsList(BaseModel):
 
 class FiltersQuerySchema(BaseModel):
     project_id: str | None = None
-    bbox: str | None = Field(regex=bbox_regex, default=None)
+    bbox: str | None = Field(default=None)
     query: Optional[str]
     is_public: Optional[bool]
     languages: Optional[List[str]]
     points_threshold: Optional[List[int]]
     rspo_institution_type: Optional[List[str]]
+    public_transport_route_type: Optional[List[str]]
     # XXX(micorix): Have to be Any. Otherwise, query param is not recognized
     extended_subjects: Optional[Any]
 
@@ -63,6 +75,37 @@ class FiltersQuerySchema(BaseModel):
             return ExtendedSubjectsList.parse_obj(json.loads(raw)).__root__
         except (JSONDecodeError, ValidationError):
             return []
+
+
+class FiltersQuery:
+    filters_query_dict = {}
+    model: FiltersQuerySchema = None
+
+    def __init__(
+        self,
+        project_id: str | None = None,
+        query: str | None = None,
+        is_public: bool | None = None,
+        languages: List[str] = Query(default=None),
+        points_threshold: List[int] = Query(default=None),
+        rspo_institution_type: List[str] = Query(default=None),
+        public_transport_route_type: list[str] = Query(default=None),
+        # XXX(micorix): Have to be Any. Otherwise, query param is not recognized
+        extended_subjects: str | None = None,
+        bbox: str | None = Query(regex=bbox_regex, default=None),
+    ):
+        filters_query_dict = {
+            "project_id": project_id,
+            "query": query,
+            "is_public": is_public,
+            "languages": languages,
+            "points_threshold": points_threshold,
+            "rspo_institution_type": rspo_institution_type,
+            "public_transport_route_type": public_transport_route_type,
+            "extended_subjects": extended_subjects,
+            "bbox": bbox,
+        }
+        self.model = FiltersQuerySchema.parse_obj(filters_query_dict)
 
 
 def filter_by_query(institutions, query: str):
@@ -94,7 +137,9 @@ def filter_by_rspo_institution_type(institutions, rspo_institution_type):
 def filter_by_bbox(institutions, bbox):
     bbox_polygon_wkt = bbox_str_to_polygon_wkt(bbox)
     return institutions.filter(
-        SecondarySchoolInstitution.geometry.ST_Within(bbox_polygon_wkt)
+        SecondarySchoolInstitution.geometry.ST_Within(
+            func.ST_GeomFromText(bbox_polygon_wkt, 4326)
+        )
     )
 
 
@@ -135,11 +180,24 @@ def filter_by_extended_subjects(institutions, extended_subjects_list):
     return institutions.filter(or_(*chainable_filters))
 
 
+def filter_by_public_transport_route_type(institutions, public_transport_route_type):
+    return institutions.filter(
+        PublicTransportStop.public_transport_routes.any(
+            PublicTransportRoute.type.in_(public_transport_route_type)
+        )
+    )
+
+
 def filter_institutions(db: Session, filters_query: FiltersQuerySchema):
     institutions = (
         db.query(SecondarySchoolInstitution)
         .join(RspoInstitution)
-        .outerjoin(SecondarySchoolInstitutionClass)
+        .outerjoin(
+            SecondarySchoolInstitutionClass,
+            InstitutionPublicTransportStopAssociation,
+            PublicTransportStop,
+            PublicTransportRoute,
+        )
     )
 
     if filters_query.project_id:
@@ -164,12 +222,17 @@ def filter_institutions(db: Session, filters_query: FiltersQuerySchema):
             institutions, filters_query.rspo_institution_type
         )
 
-    if filters_query.bbox:
-        institutions = filter_by_bbox(institutions, filters_query.bbox)
-
     if filters_query.extended_subjects:
         institutions = filter_by_extended_subjects(
             institutions, filters_query.extended_subjects
         )
+
+    if filters_query.public_transport_route_type:
+        institutions = filter_by_public_transport_route_type(
+            institutions, filters_query.public_transport_route_type
+        )
+
+    if filters_query.bbox:
+        institutions = filter_by_bbox(institutions, filters_query.bbox)
 
     return institutions

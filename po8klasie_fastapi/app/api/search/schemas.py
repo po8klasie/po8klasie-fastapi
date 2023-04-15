@@ -30,6 +30,7 @@ class RspoInstitutionSchema(CamelCasedModel):
     city: str
 
     is_public: bool
+    rspo_institution_type: str
 
     latitude: float
     longitude: float

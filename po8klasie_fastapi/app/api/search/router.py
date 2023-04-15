@@ -1,23 +1,20 @@
 from __future__ import annotations
 
-from typing import List
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from geojson import FeatureCollection as GeoJsonFeatureCollection
+from pydantic import Required
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
 from po8klasie_fastapi.app.api.search.filtering import (
-    FiltersQuerySchema,
+    FiltersQuery,
     filter_by_project_id,
     filter_by_query,
     filter_institutions,
-    search_router_secondary_school_entities,
 )
-from po8klasie_fastapi.app.api.search.map_features import (
-    bbox_str_to_polygon_wkt,
-    get_road_accidents_collection,
-    institution_models_to_features,
+from po8klasie_fastapi.app.api.search.map_features.router import (
+    search_map_features_router,
 )
 from po8klasie_fastapi.app.api.search.ordering import order_institutions
 from po8klasie_fastapi.app.api.search.schemas import (
@@ -38,6 +35,8 @@ from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 from po8klasie_fastapi.db.db import get_db
 
 search_router = APIRouter()
+
+search_router.include_router(search_map_features_router, prefix="/map_features")
 
 
 @search_router.get("/autocomplete")
@@ -62,17 +61,32 @@ def route_search_autocomplete(
 
 
 @search_router.get("/institution/{rspo}")
-def route_search_single_institution(
-    rspo: str = Query(default=...), db: Session = Depends(get_db)
-):
+def route_search_single_institution(rspo=Required, db: Session = Depends(get_db)):
     try:
-        return (
-            query_secondary_school_institutions(
-                db, search_router_secondary_school_entities
-            )
+        institution = (
+            db.query(SecondarySchoolInstitution)
+            .join(RspoInstitution)
             .filter(SecondarySchoolInstitution.rspo == rspo)
             .one()
         )
+
+        # TODO(micorix): Make it more performant
+        classes = (
+            db.query(SecondarySchoolInstitutionClass)
+            .filter(
+                SecondarySchoolInstitutionClass.institution_rspo == institution.rspo,
+                SecondarySchoolInstitutionClass.year
+                == INSTITUTION_CLASSES_CURRENT_YEAR,
+            )
+            .all()
+        )
+
+        return {
+            **RspoInstitutionSchema.from_orm(institution.rspo_institution).dict(),
+            **SecondarySchoolInstitutionSchema.from_orm(institution).dict(),
+            "classes": classes,
+        }
+
     except NoResultFound:
         raise HTTPException(
             status_code=404,
@@ -82,10 +96,10 @@ def route_search_single_institution(
 
 @search_router.get("/institution")
 def route_search_institutions(
-    filters_query: FiltersQuerySchema = Depends(),
+    filters_query: Annotated[FiltersQuery, Depends(FiltersQuery)],
     db: Session = Depends(get_db),
 ):
-    institutions = filter_institutions(db, filters_query)
+    institutions = filter_institutions(db, filters_query.model)
     institutions = order_institutions(institutions)
 
     # TODO(micorix): Make it more performant
@@ -105,42 +119,3 @@ def route_search_institutions(
             **SecondarySchoolInstitutionSchema.from_orm(institution).dict(),
             "classes": classes,
         }
-
-
-@search_router.get("/map_features")
-def route_search_map_features(
-    filters_query: FiltersQuerySchema = Depends(),
-    layers_ids: List[str] = Query(None),
-    db: Session = Depends(get_db),
-):
-    bbox = filters_query.bbox
-
-    if not bbox:
-        raise HTTPException(status_code=422)
-
-    def is_layer_enabled(layer_id: str):
-        return bbox and layers_ids and layer_id in layers_ids
-
-    def get_layer(layer_id, func):
-        if is_layer_enabled(layer_id):
-            bbox_polygon_wkt = bbox_str_to_polygon_wkt(bbox)
-            return func(db=db, bbox_polygon_wkt=bbox_polygon_wkt)
-        return GeoJsonFeatureCollection([])
-
-    institutions = (
-        filter_institutions(db, filters_query)
-        .with_entities(
-            SecondarySchoolInstitution.rspo,
-            RspoInstitution.name,
-            SecondarySchoolInstitution.geometry,
-        )
-        .all()
-    )
-    institutions_collection = GeoJsonFeatureCollection(
-        institution_models_to_features(institutions)
-    )
-
-    return {
-        "institutions": institutions_collection,
-        "roadAccidents": get_layer("roadAccidents", get_road_accidents_collection),
-    }

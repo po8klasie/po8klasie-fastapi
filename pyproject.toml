@@ -6,7 +6,7 @@ authors = ["Michał Oręziak <micorix.dev@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.94.0"
+fastapi = "^0.95.0"
 pydantic = "^1.10.6"
 SQLAlchemy = "^1.4.29"
 psycopg2-binary = "^2.9.5"
@@ -24,6 +24,7 @@ fastapi-pagination = {extras = ["sqlalchemy"], version = "^0.11.4"}
 factory-boy = "^3.2.1"
 faker-education = "^1.2.1"
 isort = "^5.12.0"
+morecantile = "^3.3.0"
 
 [tool.poetry.dev-dependencies]
 black = "^23.1.0"
