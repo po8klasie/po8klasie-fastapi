@@ -9,4 +9,4 @@ class RoadAccident(Base):
 
     sewik_id = Column(String, primary_key=True)
     accident_type_id = Column(String)
-    geometry = Column(Geometry("POINT"))
+    geometry = Column(Geometry("POINT", srid=4326))

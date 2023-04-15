@@ -28,7 +28,7 @@ class Institution(Base):
         "InstitutionPublicTransportStopAssociation", back_populates="institution"
     )
 
-    geometry = Column(Geometry("POINT"))
+    geometry = Column(Geometry("POINT"), srid=4326)
 
     __mapper_args__ = {"polymorphic_on": institution_type_generalized}
 

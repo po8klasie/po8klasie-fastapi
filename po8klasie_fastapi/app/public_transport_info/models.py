@@ -64,7 +64,7 @@ class PublicTransportStop(Base):
     name = Column(String)
     latitude = Column(Float)
     longitude = Column(Float)
-    geometry = Column(Geometry("POINT"))
+    geometry = Column(Geometry("POINT", srid=4326))
 
     public_transport_routes = relationship(
         "PublicTransportRoute",
