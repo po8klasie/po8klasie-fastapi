@@ -1,12 +1,13 @@
 import json
 from json import JSONDecodeError
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import shapely
 from fastapi import Query
-from pydantic import BaseModel, Field, ValidationError, validator
+from pydantic import BaseModel, Field, validator
 from sqlalchemy import and_, func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Query as SQLAlchemyQuery
+from sqlalchemy.orm import Session, contains_eager
 
 from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
 from po8klasie_fastapi.app.institution_classes.consts import (
@@ -42,6 +43,36 @@ search_router_secondary_school_entities = [
     RspoInstitution.rspo_institution_type,
 ]
 
+
+def query_institutions(
+    db: Session, with_public_transport: bool = False
+) -> SQLAlchemyQuery:
+    institutions = (
+        db.query(SecondarySchoolInstitution)
+        .join(RspoInstitution)
+        .outerjoin(
+            SecondarySchoolInstitutionClass,
+            and_(
+                RspoInstitution.rspo
+                == SecondarySchoolInstitutionClass.institution_rspo,
+                SecondarySchoolInstitutionClass.year
+                == INSTITUTION_CLASSES_CURRENT_YEAR,
+            ),
+        )
+        .options(contains_eager(SecondarySchoolInstitution.classes))
+        .populate_existing()
+    )
+
+    if with_public_transport:
+        institutions = institutions.outerjoin(
+            InstitutionPublicTransportStopAssociation,
+            PublicTransportStop,
+            PublicTransportRoute,
+        )
+
+    return institutions
+
+
 bbox_regex = r"^\d+\.\d+,\d+\.\d+,\d+\.\d+,\d+\.\d+$"
 
 
@@ -51,10 +82,6 @@ def bbox_str_to_polygon_wkt(bbox_str: str) -> str:
     return polygon.wkt
 
 
-class ExtendedSubjectsList(BaseModel):
-    __root__: List[List[str]]
-
-
 class FiltersQuerySchema(BaseModel):
     project_id: str | None = None
     bbox: str | None = Field(default=None)
@@ -62,18 +89,17 @@ class FiltersQuerySchema(BaseModel):
     is_public: Optional[bool]
     languages: Optional[List[str]]
     points_threshold: Optional[List[int]]
-    rspo_institution_type: Optional[List[str]]
+    rspo_institution_type: Optional[List[int]]
     public_transport_route_type: Optional[List[str]]
-    # XXX(micorix): Have to be Any. Otherwise, query param is not recognized
-    extended_subjects: Optional[Any]
+    extended_subjects: Optional[list[list[str]]]
 
     @validator("extended_subjects", pre=True)
     def preprocess_extended_subjects(cls, raw: str):
         if not raw:
             return []
         try:
-            return ExtendedSubjectsList.parse_obj(json.loads(raw)).__root__
-        except (JSONDecodeError, ValidationError):
+            return json.loads(raw)
+        except JSONDecodeError:
             return []
 
 
@@ -88,7 +114,7 @@ class FiltersQuery:
         is_public: bool | None = None,
         languages: List[str] = Query(default=None),
         points_threshold: List[int] = Query(default=None),
-        rspo_institution_type: List[str] = Query(default=None),
+        rspo_institution_type: list[int] = Query(default=None),
         public_transport_route_type: list[str] = Query(default=None),
         # XXX(micorix): Have to be Any. Otherwise, query param is not recognized
         extended_subjects: str | None = None,
@@ -108,33 +134,41 @@ class FiltersQuery:
         self.model = FiltersQuerySchema.parse_obj(filters_query_dict)
 
 
-def filter_by_query(institutions, query: str):
+def filter_by_query(institutions: SQLAlchemyQuery, query: str) -> SQLAlchemyQuery:
     return institutions.filter(
         func.lower(RspoInstitution.name).contains(query.lower(), autoescape=True)
     )
 
 
-def filter_by_project_id(institutions, project_id: str):
+def filter_by_project_id(
+    institutions: SQLAlchemyQuery, project_id: str
+) -> SQLAlchemyQuery:
     return institutions.filter(SecondarySchoolInstitution.project_id == project_id)
 
 
-def filter_by_languages(institutions, languages: List[str]):
+def filter_by_languages(
+    institutions: SQLAlchemyQuery, languages: List[str]
+) -> SQLAlchemyQuery:
     return institutions.filter(
         SecondarySchoolInstitution.available_languages.contains(languages)
     )
 
 
-def filter_by_is_public(institutions, is_public):
+def filter_by_is_public(
+    institutions: SQLAlchemyQuery, is_public: bool | None
+) -> SQLAlchemyQuery:
     return institutions.filter(RspoInstitution.is_public == is_public)
 
 
-def filter_by_rspo_institution_type(institutions, rspo_institution_type):
+def filter_by_rspo_institution_type(
+    institutions: SQLAlchemyQuery, rspo_institution_type: list[int]
+):
     return institutions.filter(
         RspoInstitution.rspo_institution_type.in_(rspo_institution_type)
     )
 
 
-def filter_by_bbox(institutions, bbox):
+def filter_by_bbox(institutions: SQLAlchemyQuery, bbox: str) -> SQLAlchemyQuery:
     bbox_polygon_wkt = bbox_str_to_polygon_wkt(bbox)
     return institutions.filter(
         SecondarySchoolInstitution.geometry.ST_Within(
@@ -143,7 +177,9 @@ def filter_by_bbox(institutions, bbox):
     )
 
 
-def filter_by_points_threshold(institutions, points_threshold: [int, int]):
+def filter_by_points_threshold(
+    institutions: SQLAlchemyQuery, points_threshold: [int, int]
+) -> SQLAlchemyQuery:
     if len(points_threshold) != 2:
         return institutions
 
@@ -160,7 +196,9 @@ def filter_by_points_threshold(institutions, points_threshold: [int, int]):
     )
 
 
-def filter_by_extended_subjects(institutions, extended_subjects_list):
+def filter_by_extended_subjects(
+    institutions: SQLAlchemyQuery, extended_subjects_list: list[list[str]]
+) -> SQLAlchemyQuery:
     chainable_filters = []
 
     for extended_subjects_per_class in extended_subjects_list:
@@ -172,15 +210,15 @@ def filter_by_extended_subjects(institutions, extended_subjects_list):
                 SecondarySchoolInstitutionClass.extended_subjects.contained_by(
                     extended_subjects_per_class
                 ),
-                SecondarySchoolInstitutionClass.year
-                == INSTITUTION_CLASSES_CURRENT_YEAR,
             )
         )
 
     return institutions.filter(or_(*chainable_filters))
 
 
-def filter_by_public_transport_route_type(institutions, public_transport_route_type):
+def filter_by_public_transport_route_type(
+    institutions: SQLAlchemyQuery, public_transport_route_type: list[str]
+) -> SQLAlchemyQuery:
     return institutions.filter(
         PublicTransportStop.public_transport_routes.any(
             PublicTransportRoute.type.in_(public_transport_route_type)
@@ -188,17 +226,10 @@ def filter_by_public_transport_route_type(institutions, public_transport_route_t
     )
 
 
-def filter_institutions(db: Session, filters_query: FiltersQuerySchema):
-    institutions = (
-        db.query(SecondarySchoolInstitution)
-        .join(RspoInstitution)
-        .outerjoin(
-            SecondarySchoolInstitutionClass,
-            InstitutionPublicTransportStopAssociation,
-            PublicTransportStop,
-            PublicTransportRoute,
-        )
-    )
+def filter_institutions(
+    db: Session, filters_query: FiltersQuerySchema
+) -> SQLAlchemyQuery:
+    institutions: SQLAlchemyQuery = query_institutions(db, with_public_transport=True)
 
     if filters_query.project_id:
         institutions = filter_by_project_id(institutions, filters_query.project_id)

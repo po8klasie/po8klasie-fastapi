@@ -12,6 +12,7 @@ from po8klasie_fastapi.app.api.search.filtering import (
     filter_by_project_id,
     filter_by_query,
     filter_institutions,
+    query_institutions,
 )
 from po8klasie_fastapi.app.api.search.map_features.router import (
     search_map_features_router,
@@ -24,12 +25,6 @@ from po8klasie_fastapi.app.api.search.schemas import (
 from po8klasie_fastapi.app.institution.models import (
     SecondarySchoolInstitution,
     query_secondary_school_institutions,
-)
-from po8klasie_fastapi.app.institution_classes.consts import (
-    INSTITUTION_CLASSES_CURRENT_YEAR,
-)
-from po8klasie_fastapi.app.institution_classes.models import (
-    SecondarySchoolInstitutionClass,
 )
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 from po8klasie_fastapi.db.db import get_db
@@ -63,28 +58,14 @@ def route_search_autocomplete(
 @search_router.get("/institution/{rspo}")
 def route_search_single_institution(rspo=Required, db: Session = Depends(get_db)):
     try:
-        institution = (
-            db.query(SecondarySchoolInstitution)
-            .join(RspoInstitution)
-            .filter(SecondarySchoolInstitution.rspo == rspo)
-            .one()
-        )
-
-        # TODO(micorix): Make it more performant
-        classes = (
-            db.query(SecondarySchoolInstitutionClass)
-            .filter(
-                SecondarySchoolInstitutionClass.institution_rspo == institution.rspo,
-                SecondarySchoolInstitutionClass.year
-                == INSTITUTION_CLASSES_CURRENT_YEAR,
-            )
-            .all()
+        institution = query_institutions(db, with_public_transport=False).filter(
+            RspoInstitution.rspo == rspo
         )
 
         return {
             **RspoInstitutionSchema.from_orm(institution.rspo_institution).dict(),
             **SecondarySchoolInstitutionSchema.from_orm(institution).dict(),
-            "classes": classes,
+            "classes": institution.classes,
         }
 
     except NoResultFound:
@@ -102,20 +83,9 @@ def route_search_institutions(
     institutions = filter_institutions(db, filters_query.model)
     institutions = order_institutions(institutions)
 
-    # TODO(micorix): Make it more performant
     for institution in institutions:
-        classes = (
-            db.query(SecondarySchoolInstitutionClass)
-            .filter(
-                SecondarySchoolInstitutionClass.institution_rspo == institution.rspo,
-                SecondarySchoolInstitutionClass.year
-                == INSTITUTION_CLASSES_CURRENT_YEAR,
-            )
-            .all()
-        )
-
         yield {
             **RspoInstitutionSchema.from_orm(institution.rspo_institution).dict(),
             **SecondarySchoolInstitutionSchema.from_orm(institution).dict(),
-            "classes": classes,
+            "classes": institution.classes,
         }

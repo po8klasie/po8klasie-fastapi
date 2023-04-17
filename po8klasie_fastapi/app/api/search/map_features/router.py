@@ -63,7 +63,6 @@ def route_institutions_tilejson(
     bounds = get_institutions_bounds_array(db, institutions.subquery())
 
     filtered_institutions = institutions.distinct(SecondarySchoolInstitution.rspo).all()
-    print(filtered_institutions)
 
     tile_url_params = ""
 
@@ -140,7 +139,6 @@ def public_transport_stop_popup_info(
     osm_id: str = Path(),
     db: Session = Depends(get_db),
 ):
-    print(osm_id)
     try:
         stop = (
             db.query(PublicTransportStop)
