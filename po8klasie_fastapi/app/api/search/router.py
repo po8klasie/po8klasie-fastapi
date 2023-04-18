@@ -58,8 +58,10 @@ def route_search_autocomplete(
 @search_router.get("/institution/{rspo}")
 def route_search_single_institution(rspo=Required, db: Session = Depends(get_db)):
     try:
-        institution = query_institutions(db, with_public_transport=False).filter(
-            RspoInstitution.rspo == rspo
+        institution = (
+            query_institutions(db, with_public_transport=False)
+            .filter(RspoInstitution.rspo == rspo)
+            .one()
         )
 
         return {

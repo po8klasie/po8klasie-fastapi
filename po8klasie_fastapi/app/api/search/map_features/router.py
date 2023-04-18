@@ -60,7 +60,9 @@ def route_institutions_tilejson(
         SecondarySchoolInstitution.geometry,
     )
 
-    bounds = get_institutions_bounds_array(db, institutions.subquery())
+    bounds: list[float] | None = get_institutions_bounds_array(
+        db, institutions.subquery()
+    )
 
     filtered_institutions = institutions.distinct(SecondarySchoolInstitution.rspo).all()
 

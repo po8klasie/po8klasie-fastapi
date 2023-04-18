@@ -43,7 +43,9 @@ def prepare_mvt_statement(tile: Tile, input_stmt, columns_to_select: list[str]):
 # bounds utils
 
 
-def box_wkt_to_bounds_array(bbox_wkt_str):
+def box_wkt_to_bounds_array(bbox_wkt_str: str) -> list[float] | None:
+    if not bbox_wkt_str:
+        return None
     bbox: str = re.match(r"BOX\((.*)\)", bbox_wkt_str).group(1)
     bbox: list[str] = re.split(r"\s|,", bbox)
     bbox: list[float] = list(map(float, bbox))

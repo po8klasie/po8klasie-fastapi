@@ -43,21 +43,20 @@ search_router_secondary_school_entities = [
     RspoInstitution.rspo_institution_type,
 ]
 
+classes_base_filters = [
+    RspoInstitution.rspo == SecondarySchoolInstitutionClass.institution_rspo,
+    SecondarySchoolInstitutionClass.year == INSTITUTION_CLASSES_CURRENT_YEAR,
+]
+
 
 def query_institutions(
     db: Session, with_public_transport: bool = False
 ) -> SQLAlchemyQuery:
+    institutions = db.query(SecondarySchoolInstitution).join(RspoInstitution)
+
     institutions = (
-        db.query(SecondarySchoolInstitution)
-        .join(RspoInstitution)
-        .outerjoin(
-            SecondarySchoolInstitutionClass,
-            and_(
-                RspoInstitution.rspo
-                == SecondarySchoolInstitutionClass.institution_rspo,
-                SecondarySchoolInstitutionClass.year
-                == INSTITUTION_CLASSES_CURRENT_YEAR,
-            ),
+        institutions.outerjoin(
+            SecondarySchoolInstitutionClass, and_(*classes_base_filters)
         )
         .options(contains_eager(SecondarySchoolInstitution.classes))
         .populate_existing()
@@ -96,11 +95,11 @@ class FiltersQuerySchema(BaseModel):
     @validator("extended_subjects", pre=True)
     def preprocess_extended_subjects(cls, raw: str):
         if not raw:
-            return []
+            return None
         try:
             return json.loads(raw)
         except JSONDecodeError:
-            return []
+            return None
 
 
 class FiltersQuery:
@@ -134,21 +133,29 @@ class FiltersQuery:
         self.model = FiltersQuerySchema.parse_obj(filters_query_dict)
 
 
-def filter_by_query(institutions: SQLAlchemyQuery, query: str) -> SQLAlchemyQuery:
+def filter_by_query(
+    institutions: SQLAlchemyQuery, query: str | None
+) -> SQLAlchemyQuery:
+    if not query:
+        return institutions
     return institutions.filter(
         func.lower(RspoInstitution.name).contains(query.lower(), autoescape=True)
     )
 
 
 def filter_by_project_id(
-    institutions: SQLAlchemyQuery, project_id: str
+    institutions: SQLAlchemyQuery, project_id: str | None
 ) -> SQLAlchemyQuery:
+    if not project_id:
+        return institutions
     return institutions.filter(SecondarySchoolInstitution.project_id == project_id)
 
 
 def filter_by_languages(
-    institutions: SQLAlchemyQuery, languages: List[str]
+    institutions: SQLAlchemyQuery, languages: List[str] | None
 ) -> SQLAlchemyQuery:
+    if not languages:
+        return institutions
     return institutions.filter(
         SecondarySchoolInstitution.available_languages.contains(languages)
     )
@@ -157,18 +164,24 @@ def filter_by_languages(
 def filter_by_is_public(
     institutions: SQLAlchemyQuery, is_public: bool | None
 ) -> SQLAlchemyQuery:
+    if is_public is None:
+        return institutions
     return institutions.filter(RspoInstitution.is_public == is_public)
 
 
 def filter_by_rspo_institution_type(
-    institutions: SQLAlchemyQuery, rspo_institution_type: list[int]
+    institutions: SQLAlchemyQuery, rspo_institution_type: list[int] | None
 ):
+    if not rspo_institution_type:
+        return institutions
     return institutions.filter(
         RspoInstitution.rspo_institution_type.in_(rspo_institution_type)
     )
 
 
-def filter_by_bbox(institutions: SQLAlchemyQuery, bbox: str) -> SQLAlchemyQuery:
+def filter_by_bbox(institutions: SQLAlchemyQuery, bbox: str | None) -> SQLAlchemyQuery:
+    if not bbox:
+        return institutions
     bbox_polygon_wkt = bbox_str_to_polygon_wkt(bbox)
     return institutions.filter(
         SecondarySchoolInstitution.geometry.ST_Within(
@@ -178,9 +191,9 @@ def filter_by_bbox(institutions: SQLAlchemyQuery, bbox: str) -> SQLAlchemyQuery:
 
 
 def filter_by_points_threshold(
-    institutions: SQLAlchemyQuery, points_threshold: [int, int]
+    institutions: SQLAlchemyQuery, points_threshold: list[int] | None
 ) -> SQLAlchemyQuery:
-    if len(points_threshold) != 2:
+    if not points_threshold or len(points_threshold) != 2:
         return institutions
 
     threshold_min, threshold_max = sorted(points_threshold)
@@ -197,28 +210,33 @@ def filter_by_points_threshold(
 
 
 def filter_by_extended_subjects(
-    institutions: SQLAlchemyQuery, extended_subjects_list: list[list[str]]
+    institutions: SQLAlchemyQuery, extended_subjects_list: list[list[str]] | None
 ) -> SQLAlchemyQuery:
-    chainable_filters = []
+    if not extended_subjects_list:
+        return institutions
 
-    for extended_subjects_per_class in extended_subjects_list:
-        chainable_filters.append(
-            and_(
-                SecondarySchoolInstitutionClass.extended_subjects.contains(
-                    extended_subjects_per_class
-                ),
-                SecondarySchoolInstitutionClass.extended_subjects.contained_by(
-                    extended_subjects_per_class
-                ),
-            )
+    conditions = [
+        and_(
+            SecondarySchoolInstitutionClass.extended_subjects.contains(
+                extended_subjects_per_class
+            ),
+            SecondarySchoolInstitutionClass.extended_subjects.contained_by(
+                extended_subjects_per_class
+            ),
+            RspoInstitution.rspo == SecondarySchoolInstitutionClass.institution_rspo,
+            SecondarySchoolInstitutionClass.year == INSTITUTION_CLASSES_CURRENT_YEAR,
         )
+        for extended_subjects_per_class in extended_subjects_list
+    ]
 
-    return institutions.filter(or_(*chainable_filters))
+    return institutions.filter(SecondarySchoolInstitution.classes.any(or_(*conditions)))
 
 
 def filter_by_public_transport_route_type(
-    institutions: SQLAlchemyQuery, public_transport_route_type: list[str]
+    institutions: SQLAlchemyQuery, public_transport_route_type: list[str] | None
 ) -> SQLAlchemyQuery:
+    if not public_transport_route_type:
+        return institutions
     return institutions.filter(
         PublicTransportStop.public_transport_routes.any(
             PublicTransportRoute.type.in_(public_transport_route_type)
@@ -231,39 +249,30 @@ def filter_institutions(
 ) -> SQLAlchemyQuery:
     institutions: SQLAlchemyQuery = query_institutions(db, with_public_transport=True)
 
-    if filters_query.project_id:
-        institutions = filter_by_project_id(institutions, filters_query.project_id)
+    institutions = filter_by_project_id(institutions, filters_query.project_id)
 
-    if filters_query.query:
-        institutions = filter_by_query(institutions, filters_query.query)
+    institutions = filter_by_query(institutions, filters_query.query)
 
-    if filters_query.languages:
-        institutions = filter_by_languages(institutions, filters_query.languages)
+    institutions = filter_by_languages(institutions, filters_query.languages)
 
-    if filters_query.points_threshold:
-        institutions = filter_by_points_threshold(
-            institutions, filters_query.points_threshold
-        )
+    institutions = filter_by_points_threshold(
+        institutions, filters_query.points_threshold
+    )
 
-    if filters_query.is_public is not None:
-        institutions = filter_by_is_public(institutions, filters_query.is_public)
+    institutions = filter_by_is_public(institutions, filters_query.is_public)
 
-    if filters_query.rspo_institution_type:
-        institutions = filter_by_rspo_institution_type(
-            institutions, filters_query.rspo_institution_type
-        )
+    institutions = filter_by_rspo_institution_type(
+        institutions, filters_query.rspo_institution_type
+    )
 
-    if filters_query.extended_subjects:
-        institutions = filter_by_extended_subjects(
-            institutions, filters_query.extended_subjects
-        )
+    institutions = filter_by_extended_subjects(
+        institutions, filters_query.extended_subjects
+    )
 
-    if filters_query.public_transport_route_type:
-        institutions = filter_by_public_transport_route_type(
-            institutions, filters_query.public_transport_route_type
-        )
+    institutions = filter_by_public_transport_route_type(
+        institutions, filters_query.public_transport_route_type
+    )
 
-    if filters_query.bbox:
-        institutions = filter_by_bbox(institutions, filters_query.bbox)
+    institutions = filter_by_bbox(institutions, filters_query.bbox)
 
     return institutions
