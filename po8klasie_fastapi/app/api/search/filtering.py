@@ -1,6 +1,7 @@
 import json
 from json import JSONDecodeError
 from typing import List, Optional
+from urllib.parse import urlencode
 
 import shapely
 from fastapi import Query
@@ -119,7 +120,7 @@ class FiltersQuery:
         extended_subjects: str | None = None,
         bbox: str | None = Query(regex=bbox_regex, default=None),
     ):
-        filters_query_dict = {
+        self.filters_query_dict = {
             "project_id": project_id,
             "query": query,
             "is_public": is_public,
@@ -130,7 +131,11 @@ class FiltersQuery:
             "extended_subjects": extended_subjects,
             "bbox": bbox,
         }
-        self.model = FiltersQuerySchema.parse_obj(filters_query_dict)
+        self.model = FiltersQuerySchema.parse_obj(self.filters_query_dict)
+
+    def get_qs(self) -> str:
+        non_null_dict = {k: v for k, v, in self.filters_query_dict.items() if v}
+        return urlencode(non_null_dict, True)
 
 
 def filter_by_query(

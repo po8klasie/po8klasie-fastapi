@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from typing import Annotated
-from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Path, Response
 from morecantile import Tile
-from sqlalchemy import text
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
@@ -14,7 +12,7 @@ from po8klasie_fastapi.app.api.search.map_features.utils import (
     get_institutions_bounds_array,
     get_institutions_near_stop,
     get_stop_routes,
-    prepare_mvt_statement,
+    query_mvt_tiles,
 )
 from po8klasie_fastapi.app.config import settings
 from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
@@ -23,6 +21,7 @@ from po8klasie_fastapi.app.public_transport_info.models import (
     PublicTransportRoute,
     PublicTransportStop,
 )
+from po8klasie_fastapi.app.road_accident.models import RoadAccident
 from po8klasie_fastapi.db.db import get_db
 
 search_map_features_router = APIRouter()
@@ -53,8 +52,6 @@ def route_institutions_tilejson(
 ):
     filters_model = filters_query.model
 
-    all_institutions_count = db.query(SecondarySchoolInstitution.rspo).count()
-
     institutions = filter_institutions(db, filters_model).with_entities(
         SecondarySchoolInstitution.rspo,
         SecondarySchoolInstitution.geometry,
@@ -63,14 +60,8 @@ def route_institutions_tilejson(
     bounds: list[float] | None = get_institutions_bounds_array(
         db, institutions.subquery()
     )
-
-    filtered_institutions = institutions.distinct(SecondarySchoolInstitution.rspo).all()
-
-    tile_url_params = ""
-
-    if len(filtered_institutions) != all_institutions_count:
-        rspos = [inst.rspo for inst in filtered_institutions]
-        tile_url_params = urlencode({"rspos": rspos}, True)
+    tile_url_params = filters_query.get_qs()
+    print(tile_url_params)
 
     return {
         "tilejson": "2.0.0",
@@ -89,17 +80,17 @@ def route_institutions_tilejson(
 
 @search_map_features_router.get("/institutions/tiles/{z}/{x}/{y}/")
 def route_institutions_tiles(
+    filters_query: Annotated[FiltersQuery, Depends(FiltersQuery)],
     tile: Tile = Depends(tile_params),
-    rspos: list[str] = Query([]),
     db: Session = Depends(get_db),
 ):
-    features_stmt = text(
-        "SELECT rspo, geometry as geom FROM institutions WHERE rspo = ANY(:rspos)"
+    result = query_mvt_tiles(
+        db,
+        tile,
+        SecondarySchoolInstitution.geometry,
+        columns_to_select=[SecondarySchoolInstitution.rspo],
+        joins=[filter_institutions(db, filters_query.model).subquery()],
     )
-    stmt = prepare_mvt_statement(tile, features_stmt, columns_to_select=["rspo"])
-    stmt = stmt.bindparams(rspos=rspos)
-
-    result = db.execute(stmt).scalar()
 
     return MVTResponse(result)
 
@@ -109,12 +100,12 @@ def road_accidents_tiles(
     tile: Tile = Depends(tile_params),
     db: Session = Depends(get_db),
 ):
-    features_stmt = text(
-        "SELECT sewik_id as sewikid, geometry as geom FROM road_accidents"
+    result = query_mvt_tiles(
+        db,
+        tile,
+        RoadAccident.geometry,
+        columns_to_select=[RoadAccident.sewik_id.label("sewikid")],
     )
-    stmt = prepare_mvt_statement(tile, features_stmt, columns_to_select=["sewikid"])
-
-    result = db.execute(stmt).scalar()
 
     return MVTResponse(result)
 
@@ -124,14 +115,15 @@ def public_transport_stops_tiles(
     tile: Tile = Depends(tile_params),
     db: Session = Depends(get_db),
 ):
-    features_stmt = text(
-        "SELECT name, osm_id as osmId, geometry as geom FROM public_transport_stops"
+    result = query_mvt_tiles(
+        db,
+        tile,
+        PublicTransportStop.geometry,
+        columns_to_select=[
+            PublicTransportStop.name,
+            PublicTransportStop.osm_id.label("osmid"),
+        ],
     )
-    stmt = prepare_mvt_statement(
-        tile, features_stmt, columns_to_select=["name", "osmId"]
-    )
-
-    result = db.execute(stmt).scalar()
 
     return MVTResponse(result)
 

@@ -2,8 +2,11 @@ import re
 from typing import Iterable
 
 import morecantile
+from geoalchemy2 import Geometry
 from morecantile import Tile
-from sqlalchemy import func, text
+from sqlalchemy import and_, column, func
+from sqlalchemy.orm import Session
+from sqlalchemy.sql import expression
 
 from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
 from po8klasie_fastapi.app.public_transport_info.models import (
@@ -14,7 +17,13 @@ from po8klasie_fastapi.app.public_transport_info.models import (
 # MVT utils
 
 
-def prepare_mvt_statement(tile: Tile, input_stmt, columns_to_select: list[str]):
+def query_mvt_tiles(
+    db: Session,
+    tile: Tile,
+    geometry_column: Geometry,
+    columns_to_select: list[str] = (),
+    joins: list[expression] = (),
+):
     tms = morecantile.tms.get("WebMercatorQuad")
     bbox = tms.xy_bounds(tile)
     xmin = bbox.left
@@ -23,21 +32,32 @@ def prepare_mvt_statement(tile: Tile, input_stmt, columns_to_select: list[str]):
     ymax = bbox.top
     epsg = tms.crs.to_epsg()
 
-    selected_columns = ", ".join(["geom", *columns_to_select])
-
-    stmt = text(
-        f"""
-        SELECT ST_AsMVT(mvtgeom.*) FROM (
-            SELECT ST_asmvtgeom(ST_Transform(t.geom, 3857), bounds.geom) AS {selected_columns}
-            FROM ({input_stmt}) t,
-                (SELECT ST_MakeEnvelope(:xmin, :ymin, :xmax, :ymax, :epsg) as geom) bounds
-            WHERE ST_Intersects(t.geom, ST_Transform(bounds.geom, 4326))
-        ) mvtgeom;
-    """
+    subquery = db.query(
+        func.ST_AsMVTGeom(
+            func.ST_Transform(geometry_column, 3857),
+            func.ST_MakeEnvelope(xmin, ymin, xmax, ymax, epsg),
+        ).label("geom"),
+        *columns_to_select
     )
 
-    stmt = stmt.bindparams(xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax, epsg=epsg)
-    return stmt
+    if len(joins):
+        subquery = subquery.join(*joins)
+    subquery = subquery.filter(
+        and_(
+            func.ST_Intersects(
+                geometry_column,
+                func.ST_Transform(
+                    func.ST_MakeEnvelope(xmin, ymin, xmax, ymax, epsg), 4326
+                ),
+            ),
+        )
+    ).subquery("mvtgeom")
+
+    return (
+        db.query(func.ST_AsMVT(column("mvtgeom"), "layer", 4096, "geom"))
+        .select_from(subquery)
+        .scalar()
+    )
 
 
 # bounds utils
