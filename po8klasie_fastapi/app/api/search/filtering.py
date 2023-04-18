@@ -89,7 +89,7 @@ class FiltersQuerySchema(BaseModel):
     is_public: Optional[bool]
     languages: Optional[List[str]]
     points_threshold: Optional[List[int]]
-    rspo_institution_type: Optional[List[int]]
+    rspo_institution_type: Optional[List[str]]
     public_transport_route_type: Optional[List[str]]
     extended_subjects: Optional[list[list[str]]]
 
@@ -114,9 +114,8 @@ class FiltersQuery:
         is_public: bool | None = None,
         languages: List[str] = Query(default=None),
         points_threshold: List[int] = Query(default=None),
-        rspo_institution_type: list[int] = Query(default=None),
+        rspo_institution_type: list[str] = Query(default=None),
         public_transport_route_type: list[str] = Query(default=None),
-        # XXX(micorix): Have to be Any. Otherwise, query param is not recognized
         extended_subjects: str | None = None,
         bbox: str | None = Query(regex=bbox_regex, default=None),
     ):
@@ -175,10 +174,11 @@ def filter_by_is_public(
 
 
 def filter_by_rspo_institution_type(
-    institutions: SQLAlchemyQuery, rspo_institution_type: list[int] | None
+    institutions: SQLAlchemyQuery, rspo_institution_type: list[str] | None
 ):
     if not rspo_institution_type:
         return institutions
+
     return institutions.filter(
         RspoInstitution.rspo_institution_type.in_(rspo_institution_type)
     )
@@ -209,7 +209,7 @@ def filter_by_points_threshold(
     return institutions.filter(
         and_(
             SecondarySchoolInstitution.points_stats_min <= threshold_max,
-            SecondarySchoolInstitution.points_stats_max >= threshold_min,
+            SecondarySchoolInstitution.points_stats_min >= threshold_min,
         )
     )
 

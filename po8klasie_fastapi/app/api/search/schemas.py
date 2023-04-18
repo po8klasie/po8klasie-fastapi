@@ -17,6 +17,8 @@ class SecondarySchoolInstitutionSchema(CamelCasedModel):
 
     available_languages: List[str]
 
+    points_stats_min: float | None
+
     class Config:
         orm_mode = True
 
