@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 from pydantic import BaseModel, validator
 
 
-class MapOptionsSchema(BaseModel):
+class DefaultMapViewSchema(BaseModel):
     center: List[float]
     zoom: float
 
@@ -14,31 +14,26 @@ class MapOptionsSchema(BaseModel):
         return value
 
 
-class DefaultQuerySchema(BaseModel):
-    project_id: str
-
-
 class FilterConfigSchema(BaseModel):
     name: str
     component: str
     parser: str
-    default_value: Any
+    defaultValue: Any
     options: Dict[str, Any]
 
 
 class SearchViewConfigSchema(BaseModel):
-    map_options: MapOptionsSchema
-    default_query: DefaultQuerySchema
+    defaultMapView: DefaultMapViewSchema
     filters: List[FilterConfigSchema]
 
 
 class SchoolInfoSectionConfigSchema(BaseModel):
-    section_id: str
+    sectionId: str
     options: Dict[str, Any]
 
 
 class SchoolViewConfigSchema(BaseModel):
-    school_info_sections: List[SchoolInfoSectionConfigSchema]
+    schoolInfoSections: List[SchoolInfoSectionConfigSchema]
 
 
 class ProjectSchema(BaseModel):
