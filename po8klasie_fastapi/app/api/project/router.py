@@ -35,3 +35,8 @@ async def get_single_project(
             by_alias=True,
             include=columns
         )
+
+    return ProjectResponseSchema.from_orm(project).dict(
+        by_alias=True,
+        include=set(required_columns)
+    )
