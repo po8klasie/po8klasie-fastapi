@@ -1,9 +1,11 @@
+from enum import Enum
 from typing import Optional
 
-from enum import Enum
-
 from po8klasie_fastapi.app.lib.router_utils import CamelCasedModel
-from po8klasie_fastapi.app.project.schemas import SchoolViewConfigSchema, SearchViewConfigSchema
+from po8klasie_fastapi.app.project.schemas import (
+    SchoolViewConfigSchema,
+    SearchViewConfigSchema,
+)
 
 
 class ProjectSelectablePropertiesEnum(Enum):
