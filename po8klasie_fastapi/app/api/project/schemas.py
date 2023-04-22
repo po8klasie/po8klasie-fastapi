@@ -14,20 +14,12 @@ class ProjectSelectablePropertiesEnum(Enum):
     search_view_config = "search_view_config"
 
 
-class SchoolViewConfigResponseSchema(SchoolViewConfigSchema, CamelCasedModel):
-    pass
-
-
-class SearchViewConfigResponseSchema(SearchViewConfigSchema, CamelCasedModel):
-    pass
-
-
 class ProjectResponseSchema(CamelCasedModel):
     project_id: str
     project_name: Optional[str]
 
-    school_view_config: Optional[SchoolViewConfigResponseSchema]
-    search_view_config: Optional[SearchViewConfigResponseSchema]
+    school_view_config: Optional[SchoolViewConfigSchema]
+    search_view_config: Optional[SearchViewConfigSchema]
 
     class Config:
         orm_mode = True
