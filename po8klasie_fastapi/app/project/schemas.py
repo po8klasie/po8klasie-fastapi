@@ -1,17 +1,12 @@
 from typing import Any, Dict, List
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 
 
 class DefaultMapViewSchema(BaseModel):
-    center: List[float]
-    zoom: float
-
-    @validator("center")
-    def check_len_eq_2(cls, value):
-        if len(value) != 2:
-            raise ValueError("map_options.center should have len == 2")
-        return value
+    latitude: float | int
+    longitude: float | int
+    zoom: float | int
 
 
 class FilterConfigSchema(BaseModel):
