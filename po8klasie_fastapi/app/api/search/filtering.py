@@ -90,7 +90,7 @@ class FiltersQuerySchema(BaseModel):
     languages: Optional[List[str]]
     points_threshold: Optional[List[int]]
     rspo_institution_type: Optional[List[str]]
-    public_transport_route_type: Optional[List[str]]
+    public_transportation_stop: Optional[List[str]]
     extended_subjects: Optional[list[list[str]]]
 
     @validator("extended_subjects", pre=True)
@@ -115,7 +115,7 @@ class FiltersQuery:
         languages: List[str] = Query(default=None),
         points_threshold: List[int] = Query(default=None),
         rspo_institution_type: list[str] = Query(default=None),
-        public_transport_route_type: list[str] = Query(default=None),
+        public_transportation_stop: list[str] = Query(default=None),
         extended_subjects: str | None = None,
         bbox: str | None = Query(regex=bbox_regex, default=None),
     ):
@@ -126,7 +126,7 @@ class FiltersQuery:
             "languages": languages,
             "points_threshold": points_threshold,
             "rspo_institution_type": rspo_institution_type,
-            "public_transport_route_type": public_transport_route_type,
+            "public_transportation_stop": public_transportation_stop,
             "extended_subjects": extended_subjects,
             "bbox": bbox,
         }
@@ -275,7 +275,7 @@ def filter_institutions(
     )
 
     institutions = filter_by_public_transport_route_type(
-        institutions, filters_query.public_transport_route_type
+        institutions, filters_query.public_transportation_stop
     )
 
     institutions = filter_by_bbox(institutions, filters_query.bbox)
