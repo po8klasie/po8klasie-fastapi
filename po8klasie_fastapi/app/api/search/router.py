@@ -36,7 +36,9 @@ search_router.include_router(search_map_features_router, prefix="/map_features")
 
 @search_router.get("/autocomplete")
 def route_search_autocomplete(
-        query: str = Query(default=...), project_id: str = Query(default=...), db: Session = Depends(get_db)
+    query: str = Query(default=...),
+    project_id: str = Query(default=...),
+    db: Session = Depends(get_db),
 ):
     institutions = query_secondary_school_institutions(
         db,
@@ -77,8 +79,8 @@ def route_search_single_institution(rspo=Required, db: Session = Depends(get_db)
 
 @search_router.get("/institution")
 def route_search_institutions(
-        filters_query: Annotated[FiltersQuery, Depends(FiltersQuery)],
-        db: Session = Depends(get_db),
+    filters_query: Annotated[FiltersQuery, Depends(FiltersQuery)],
+    db: Session = Depends(get_db),
 ):
     institutions = filter_institutions(db, filters_query.model)
     institutions = order_institutions(institutions)
