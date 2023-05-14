@@ -34,7 +34,6 @@ school_router_secondary_school_entities = [
     RspoInstitution.phone,
     RspoInstitution.website,
     SecondarySchoolInstitution.description,
-    SecondarySchoolInstitution.class_profiles,
     # education offer section
     SecondarySchoolInstitution.extracurricular_activities,
     SecondarySchoolInstitution.school_events,
