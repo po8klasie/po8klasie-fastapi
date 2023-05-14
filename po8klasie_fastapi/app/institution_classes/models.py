@@ -25,12 +25,16 @@ class SecondarySchoolInstitutionClass(Base):
 
     occupation = Column(String)
 
+    description = Column(String)
+
     available_languages = Column(ARRAY(String))
     extended_subjects = Column(ARRAY(String))
 
     points_stats_min = Column(Float)
     points_stats_avg = Column(Float)
     points_stats_max = Column(Float)
+
+    url = Column(String)
 
     institution_rspo = Column(String, ForeignKey("secondary_school_institutions.rspo"))
     institution = relationship("SecondarySchoolInstitution", back_populates="classes")
