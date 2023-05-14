@@ -55,19 +55,22 @@ class SecondarySchoolInstitution(Institution):
     sport_classes_count = Column(Integer)
     working_time = Column(String)
     students_per_teacher = Column(Float)
-    description = Column(String)
-    sport_activities = Column(ARRAY(String))
-    foreign_languages = Column(ARRAY(String))
-    class_profiles = Column(ARRAY(String))
-    extracurricular_activities = Column(ARRAY(String))
 
+    description = Column(String)
+
+    extracurricular_activities = Column(ARRAY(String))
     school_events = Column(ARRAY(String))
+
     sport_infrastructure = Column(ARRAY(String))
+    sport_activities = Column(ARRAY(String))
+
     NGO_partners = Column(ARRAY(String))
     university_partners = Column(ARRAY(String))
+
     avg_students_no_per_class = Column(Integer)
     max_students_no_per_class = Column(Integer)
     min_students_no_per_class = Column(Integer)
+
     no_of_students_taking_part_in_olympiads = Column(String)
     no_of_internal_competitions = Column(String)
     no_of_school_trips_per_year = Column(String)
