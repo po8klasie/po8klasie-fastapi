@@ -7,6 +7,7 @@ from pydantic import Required
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import Session
 
+from po8klasie_fastapi.app.api.schemas import InstitutionOverviewSchema
 from po8klasie_fastapi.app.api.search.filtering import (
     FiltersQuery,
     filter_by_project_id,
@@ -18,14 +19,7 @@ from po8klasie_fastapi.app.api.search.map_features.router import (
     search_map_features_router,
 )
 from po8klasie_fastapi.app.api.search.ordering import order_institutions
-from po8klasie_fastapi.app.api.search.schemas import (
-    RspoInstitutionSchema,
-    SecondarySchoolInstitutionSchema,
-)
-from po8klasie_fastapi.app.institution.models import (
-    SecondarySchoolInstitution,
-    query_secondary_school_institutions,
-)
+from po8klasie_fastapi.app.api.search.schemas import SearchAutocompleteItemSchema
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 from po8klasie_fastapi.db.db import get_db
 
@@ -40,19 +34,15 @@ def route_search_autocomplete(
     project_id: str = Query(default=...),
     db: Session = Depends(get_db),
 ):
-    institutions = query_secondary_school_institutions(
-        db,
-        [
-            SecondarySchoolInstitution.rspo,
-            SecondarySchoolInstitution.project_id,
-            RspoInstitution.name,
-        ],
-    )
+    institutions = query_institutions(db)
 
     institutions = filter_by_query(institutions, query)
     institutions = filter_by_project_id(institutions, project_id)
 
-    return institutions.limit(5).all()
+    institutions = institutions.limit(5).all()
+
+    for institution in institutions:
+        yield SearchAutocompleteItemSchema.parse_institution(institution)
 
 
 @search_router.get("/institution/{rspo}")
@@ -64,11 +54,7 @@ def route_search_single_institution(rspo=Required, db: Session = Depends(get_db)
             .one()
         )
 
-        return {
-            **RspoInstitutionSchema.from_orm(institution.rspo_institution).dict(),
-            **SecondarySchoolInstitutionSchema.from_orm(institution).dict(),
-            "classes": institution.classes,
-        }
+        return InstitutionOverviewSchema.parse_institution(institution)
 
     except NoResultFound:
         raise HTTPException(
@@ -86,8 +72,4 @@ def route_search_institutions(
     institutions = order_institutions(institutions)
 
     for institution in institutions:
-        yield {
-            **RspoInstitutionSchema.from_orm(institution.rspo_institution).dict(),
-            **SecondarySchoolInstitutionSchema.from_orm(institution).dict(),
-            "classes": institution.classes,
-        }
+        yield InstitutionOverviewSchema.parse_institution(institution)

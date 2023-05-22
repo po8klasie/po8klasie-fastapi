@@ -1,12 +1,28 @@
 import enum
 
 from geoalchemy2 import Geometry
-from sqlalchemy import Column, Enum, Float, ForeignKey, Integer, String
+from sqlalchemy import Column, Enum, Float, ForeignKey, Integer, String, and_
 from sqlalchemy.dialects.postgresql import ARRAY
-from sqlalchemy.orm import Session, relationship
-
-from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
+from sqlalchemy.orm import (
+    Session,
+    relationship,
+    contains_eager,
+    Query as SQLAlchemyQuery,
+)
 from po8klasie_fastapi.db.base import Base
+
+from po8klasie_fastapi.app.institution_classes.consts import (
+    INSTITUTION_CLASSES_CURRENT_YEAR,
+)
+from po8klasie_fastapi.app.institution_classes.models import (
+    SecondarySchoolInstitutionClass,
+)
+from po8klasie_fastapi.app.public_transport_info.models import (
+    InstitutionPublicTransportStopAssociation,
+    PublicTransportRoute,
+    PublicTransportStop,
+)
+from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 
 
 class InstitutionTypeGeneralizedEnum(enum.Enum):
@@ -76,21 +92,31 @@ class SecondarySchoolInstitution(Institution):
     no_of_school_trips_per_year = Column(String)
     no_of_fulltime_psychologist_positions = Column(Float)
 
-    def get_classes(self):
-        return
+
+classes_base_filters = [
+    RspoInstitution.rspo == SecondarySchoolInstitutionClass.institution_rspo,
+    SecondarySchoolInstitutionClass.year == INSTITUTION_CLASSES_CURRENT_YEAR,
+]
 
 
-def query_institutions(db: Session, entities):
-    return (
-        db.query(Institution)
-        .join(Institution.rspo_institution)
-        .with_entities(*entities)
+def query_institutions(
+    db: Session, with_public_transport: bool = False
+) -> SQLAlchemyQuery:
+    institutions = db.query(SecondarySchoolInstitution).join(RspoInstitution)
+
+    institutions = (
+        institutions.outerjoin(
+            SecondarySchoolInstitutionClass, and_(*classes_base_filters)
+        )
+        .options(contains_eager(SecondarySchoolInstitution.classes))
+        .populate_existing()
     )
 
+    if with_public_transport:
+        institutions = institutions.outerjoin(
+            InstitutionPublicTransportStopAssociation,
+            PublicTransportStop,
+            PublicTransportRoute,
+        )
 
-def query_secondary_school_institutions(db: Session, entities):
-    return (
-        db.query(SecondarySchoolInstitution)
-        .join(SecondarySchoolInstitution.rspo_institution)
-        .with_entities(*entities)
-    )
+    return institutions

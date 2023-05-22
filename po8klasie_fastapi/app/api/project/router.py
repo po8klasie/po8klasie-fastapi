@@ -28,13 +28,6 @@ async def get_single_project(
     project = db.query(Project).filter_by(project_id=project_id).one()
     required_columns = ["project_id", "project_name"]
 
-    if properties:
-        selected_columns = [p.value for p in properties]
-        columns = set(required_columns + selected_columns)
-        return ProjectResponseSchema.from_orm(project).dict(
-            by_alias=True, include=columns
-        )
-
     return ProjectResponseSchema.from_orm(project).dict(
-        by_alias=True, include=set(required_columns)
+        by_alias=True
     )

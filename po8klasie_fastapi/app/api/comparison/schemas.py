@@ -1,24 +1,52 @@
-from __future__ import annotations
+from enum import Enum
 
-from typing import List
+from pydantic import validator, create_model, Field
+from typing import Any
 
-from po8klasie_fastapi.app.api.comparison.comparison_utils import ComparisonResultEnum
+from po8klasie_fastapi.app.api.schemas import InstitutionSourcingSchemaMixin
 from po8klasie_fastapi.app.lib.router_utils import CamelCasedModel
 
 
-class ComparisonItemSchema(CamelCasedModel):
-    value: int | str
+class ComparisonInstitutionDataSchema(CamelCasedModel, InstitutionSourcingSchemaMixin):
+    rspo: str
+    name: str
+
+
+class ComparisonComparableDataSchema(CamelCasedModel, InstitutionSourcingSchemaMixin):
+    is_public: bool
+    city: str
+    available_languages: list[str]
+    classes: list[str]
+
+    @validator("classes", pre=True)
+    def preprocess_classes(cls, classes):
+        return ["-".join(class_.extended_subjects) for class_ in classes]
+
+
+class ComparisonResultEnum(Enum):
+    MATCH = "match"
+    NEUTRAL = "neutral"
+
+
+class ComparisonField(CamelCasedModel):
+    value: Any
     comparison_result: ComparisonResultEnum
 
 
-class ComparisonItemsSchema(CamelCasedModel):
-    is_public: ComparisonItemSchema
-    city: ComparisonItemSchema
-    available_languages: List[ComparisonItemSchema]
-    classes: List[ComparisonItemSchema]
+ComparisonInstitutionResultSnakeCase = create_model(
+    "ComparisonInstitutionResult",
+    **{
+        field_name: (ComparisonField | list[ComparisonField], Field(title=field_name))
+        for field_name in ComparisonComparableDataSchema.__fields__.keys()
+    }
+)
 
 
-class ComparisonInstitutionSchema(CamelCasedModel):
-    name: str
-    rspo: str
-    comparison: ComparisonItemsSchema
+class ComparisonInstitutionResult(
+    ComparisonInstitutionResultSnakeCase, CamelCasedModel
+):
+    pass
+
+
+class ComparisonInstitution(ComparisonInstitutionDataSchema):
+    comparison: ComparisonInstitutionResult

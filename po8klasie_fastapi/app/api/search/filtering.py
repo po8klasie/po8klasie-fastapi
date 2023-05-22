@@ -8,9 +8,12 @@ from fastapi import Query
 from pydantic import BaseModel, Field, validator
 from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Query as SQLAlchemyQuery
-from sqlalchemy.orm import Session, contains_eager
+from sqlalchemy.orm import Session
 
-from po8klasie_fastapi.app.institution.models import SecondarySchoolInstitution
+from po8klasie_fastapi.app.institution.models import (
+    SecondarySchoolInstitution,
+    query_institutions,
+)
 from po8klasie_fastapi.app.institution_classes.consts import (
     INSTITUTION_CLASSES_CURRENT_YEAR,
 )
@@ -18,59 +21,10 @@ from po8klasie_fastapi.app.institution_classes.models import (
     SecondarySchoolInstitutionClass,
 )
 from po8klasie_fastapi.app.public_transport_info.models import (
-    InstitutionPublicTransportStopAssociation,
     PublicTransportRoute,
     PublicTransportStop,
 )
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
-
-search_router_secondary_school_entities = [
-    SecondarySchoolInstitution.project_id,
-    SecondarySchoolInstitution.rspo,
-    SecondarySchoolInstitution.points_stats_min,
-    SecondarySchoolInstitution.points_stats_max,
-    SecondarySchoolInstitution.institution_type_generalized,
-    SecondarySchoolInstitution.available_languages,
-    RspoInstitution.name,
-    RspoInstitution.street,
-    RspoInstitution.building_number,
-    RspoInstitution.apartment_number,
-    RspoInstitution.city,
-    RspoInstitution.is_public,
-    RspoInstitution.latitude,
-    RspoInstitution.longitude,
-    RspoInstitution.borough,
-    RspoInstitution.city,
-    RspoInstitution.rspo_institution_type,
-]
-
-classes_base_filters = [
-    RspoInstitution.rspo == SecondarySchoolInstitutionClass.institution_rspo,
-    SecondarySchoolInstitutionClass.year == INSTITUTION_CLASSES_CURRENT_YEAR,
-]
-
-
-def query_institutions(
-    db: Session, with_public_transport: bool = False
-) -> SQLAlchemyQuery:
-    institutions = db.query(SecondarySchoolInstitution).join(RspoInstitution)
-
-    institutions = (
-        institutions.outerjoin(
-            SecondarySchoolInstitutionClass, and_(*classes_base_filters)
-        )
-        .options(contains_eager(SecondarySchoolInstitution.classes))
-        .populate_existing()
-    )
-
-    if with_public_transport:
-        institutions = institutions.outerjoin(
-            InstitutionPublicTransportStopAssociation,
-            PublicTransportStop,
-            PublicTransportRoute,
-        )
-
-    return institutions
 
 
 bbox_regex = r"^\d+\.\d+,\d+\.\d+,\d+\.\d+,\d+\.\d+$"
