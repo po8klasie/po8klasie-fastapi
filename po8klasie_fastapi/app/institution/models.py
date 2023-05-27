@@ -24,6 +24,8 @@ from po8klasie_fastapi.app.public_transport_info.models import (
 )
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 
+import po8klasie_fastapi.app.rankings.zwzt.models
+
 
 class InstitutionTypeGeneralizedEnum(enum.Enum):
     SECONDARY_SCHOOL = "secondary_school"
