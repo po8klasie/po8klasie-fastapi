@@ -62,6 +62,10 @@ class SecondarySchoolInstitution(Institution):
         "SecondarySchoolInstitutionClass", back_populates="institution"
     )
 
+    zwzt_ranking_entries = relationship(
+        "ZwzTRankingEntry", back_populates="institution"
+    )
+
     points_stats_min = Column(Float)
     points_stats_max = Column(Float)
     available_languages = Column(ARRAY(String))
