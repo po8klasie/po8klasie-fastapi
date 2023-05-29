@@ -1,4 +1,3 @@
-from sqlalchemy import and_
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -11,7 +10,7 @@ from po8klasie_fastapi.app.institution.models import (
     SecondarySchoolInstitution,
     query_institutions,
 )
-from po8klasie_fastapi.app.rankings.zwzt.models import ZwzTRankingEntry, zwzt_ranking_entries_base_filters
+from po8klasie_fastapi.app.rankings.zwzt.models import ZwzTRankingEntry
 
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 from po8klasie_fastapi.db.db import get_db
@@ -51,11 +50,6 @@ def route_get_single_school(rspo: str, db: Session = Depends(get_db)):
         institution = (
             query_institutions(db, with_public_transport=True)
             .filter(RspoInstitution.rspo == rspo)
-            # TODO(micorix): Abstract querying ranking results
-            .outerjoin(
-                ZwzTRankingEntry, and_(*zwzt_ranking_entries_base_filters)
-            )
-            .options(contains_eager(SecondarySchoolInstitution.zwzt_ranking_entries))
             .one()
         )
 

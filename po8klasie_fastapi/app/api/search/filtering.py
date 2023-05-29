@@ -26,7 +26,6 @@ from po8klasie_fastapi.app.public_transport_info.models import (
 )
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 
-
 bbox_regex = r"^\d+\.\d+,\d+\.\d+,\d+\.\d+,\d+\.\d+$"
 
 
@@ -46,6 +45,7 @@ class FiltersQuerySchema(BaseModel):
     rspo_institution_type: Optional[List[str]]
     public_transportation_stop: Optional[List[str]]
     extended_subjects: Optional[list[list[str]]]
+    featured_in_zwzt_ranking: Optional[bool]
 
     @validator("extended_subjects", pre=True)
     def preprocess_extended_subjects(cls, raw: str):
@@ -62,16 +62,17 @@ class FiltersQuery:
     model: FiltersQuerySchema = None
 
     def __init__(
-        self,
-        project_id: str | None = None,
-        query: str | None = None,
-        is_public: bool | None = None,
-        languages: List[str] = Query(default=None),
-        points_threshold: List[int] = Query(default=None),
-        rspo_institution_type: list[str] = Query(default=None),
-        public_transportation_stop: list[str] = Query(default=None),
-        extended_subjects: str | None = None,
-        bbox: str | None = Query(regex=bbox_regex, default=None),
+            self,
+            project_id: str | None = None,
+            query: str | None = None,
+            is_public: bool | None = None,
+            languages: List[str] = Query(default=None),
+            points_threshold: List[int] = Query(default=None),
+            rspo_institution_type: list[str] = Query(default=None),
+            public_transportation_stop: list[str] = Query(default=None),
+            extended_subjects: str | None = None,
+            bbox: str | None = Query(regex=bbox_regex, default=None),
+            featured_in_zwzt_ranking: bool | None = None
     ):
         self.filters_query_dict = {
             "project_id": project_id,
@@ -82,6 +83,7 @@ class FiltersQuery:
             "rspo_institution_type": rspo_institution_type,
             "public_transportation_stop": public_transportation_stop,
             "extended_subjects": extended_subjects,
+            "featured_in_zwzt_ranking": featured_in_zwzt_ranking,
             "bbox": bbox,
         }
         self.model = FiltersQuerySchema.parse_obj(self.filters_query_dict)
@@ -92,7 +94,7 @@ class FiltersQuery:
 
 
 def filter_by_query(
-    institutions: SQLAlchemyQuery, query: str | None
+        institutions: SQLAlchemyQuery, query: str | None
 ) -> SQLAlchemyQuery:
     if not query:
         return institutions
@@ -102,7 +104,7 @@ def filter_by_query(
 
 
 def filter_by_project_id(
-    institutions: SQLAlchemyQuery, project_id: str | None
+        institutions: SQLAlchemyQuery, project_id: str | None
 ) -> SQLAlchemyQuery:
     if not project_id:
         return institutions
@@ -110,7 +112,7 @@ def filter_by_project_id(
 
 
 def filter_by_languages(
-    institutions: SQLAlchemyQuery, languages: List[str] | None
+        institutions: SQLAlchemyQuery, languages: List[str] | None
 ) -> SQLAlchemyQuery:
     if not languages:
         return institutions
@@ -120,7 +122,7 @@ def filter_by_languages(
 
 
 def filter_by_is_public(
-    institutions: SQLAlchemyQuery, is_public: bool | None
+        institutions: SQLAlchemyQuery, is_public: bool | None
 ) -> SQLAlchemyQuery:
     if is_public is None:
         return institutions
@@ -128,7 +130,7 @@ def filter_by_is_public(
 
 
 def filter_by_rspo_institution_type(
-    institutions: SQLAlchemyQuery, rspo_institution_type: list[str] | None
+        institutions: SQLAlchemyQuery, rspo_institution_type: list[str] | None
 ):
     if not rspo_institution_type:
         return institutions
@@ -150,7 +152,7 @@ def filter_by_bbox(institutions: SQLAlchemyQuery, bbox: str | None) -> SQLAlchem
 
 
 def filter_by_points_threshold(
-    institutions: SQLAlchemyQuery, points_threshold: list[int] | None
+        institutions: SQLAlchemyQuery, points_threshold: list[int] | None
 ) -> SQLAlchemyQuery:
     if not points_threshold or len(points_threshold) != 2:
         return institutions
@@ -169,7 +171,7 @@ def filter_by_points_threshold(
 
 
 def filter_by_extended_subjects(
-    institutions: SQLAlchemyQuery, extended_subjects_list: list[list[str]] | None
+        institutions: SQLAlchemyQuery, extended_subjects_list: list[list[str]] | None
 ) -> SQLAlchemyQuery:
     if not extended_subjects_list:
         return institutions
@@ -191,8 +193,18 @@ def filter_by_extended_subjects(
     return institutions.filter(SecondarySchoolInstitution.classes.any(or_(*conditions)))
 
 
+def filter_by_featured_in_zwzt_ranking(
+        institutions: SQLAlchemyQuery, featured_in_zwzt_ranking: bool | None
+) -> SQLAlchemyQuery:
+    if not featured_in_zwzt_ranking:
+        return institutions
+    return institutions.filter(
+        SecondarySchoolInstitution.zwzt_ranking_entries.any()
+    )
+
+
 def filter_by_public_transport_route_type(
-    institutions: SQLAlchemyQuery, public_transport_route_type: list[str] | None
+        institutions: SQLAlchemyQuery, public_transport_route_type: list[str] | None
 ) -> SQLAlchemyQuery:
     if not public_transport_route_type:
         return institutions
@@ -204,7 +216,7 @@ def filter_by_public_transport_route_type(
 
 
 def filter_institutions(
-    db: Session, filters_query: FiltersQuerySchema
+        db: Session, filters_query: FiltersQuerySchema
 ) -> SQLAlchemyQuery:
     institutions: SQLAlchemyQuery = query_institutions(db, with_public_transport=True)
 
@@ -230,6 +242,10 @@ def filter_institutions(
 
     institutions = filter_by_public_transport_route_type(
         institutions, filters_query.public_transportation_stop
+    )
+
+    institutions = filter_by_featured_in_zwzt_ranking(
+        institutions, filters_query.featured_in_zwzt_ranking
     )
 
     institutions = filter_by_bbox(institutions, filters_query.bbox)

@@ -24,7 +24,7 @@ from po8klasie_fastapi.app.public_transport_info.models import (
 )
 from po8klasie_fastapi.app.rspo_institution.models import RspoInstitution
 
-import po8klasie_fastapi.app.rankings.zwzt.models
+from po8klasie_fastapi.app.rankings.zwzt.models import ZwzTRankingEntry
 
 
 class InstitutionTypeGeneralizedEnum(enum.Enum):
@@ -115,6 +115,10 @@ def query_institutions(
             SecondarySchoolInstitutionClass, and_(*classes_base_filters)
         )
         .options(contains_eager(SecondarySchoolInstitution.classes))
+        .outerjoin(
+            ZwzTRankingEntry, ZwzTRankingEntry.institution_rspo == RspoInstitution.rspo
+        )
+        .options(contains_eager(SecondarySchoolInstitution.zwzt_ranking_entries))
         .populate_existing()
     )
 

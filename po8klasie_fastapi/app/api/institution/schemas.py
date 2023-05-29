@@ -83,9 +83,9 @@ class InstitutionDetailsClassProfilesSectionSchema(BaseModel):
 
     @validator("classes", pre=True)
     def group_classes_by_year(
-        cls,
-        classes: Iterable[SecondarySchoolInstitutionClass]
-        | dict[int, list[SecondarySchoolInstitutionClass]],
+            cls,
+            classes: Iterable[SecondarySchoolInstitutionClass]
+                     | dict[int, list[SecondarySchoolInstitutionClass]],
     ) -> dict[int, list[SecondarySchoolInstitutionClass]]:
         if isinstance(classes, dict):
             return classes
@@ -104,6 +104,22 @@ class InstitutionDetailsClassProfilesSectionSchema(BaseModel):
         return grouped_classes
 
 
+class ZwzTRankingEntrySchema(CamelCasedModel):
+    year: int
+
+    place_in_country: int
+    place_in_voivodeship: int
+
+    indicator_value: float
+
+    class Config:
+        orm_mode = True
+
+
+class InstitutionDetailsZwzTSectionSchema(CamelCasedModel):
+    zwzt_ranking_entries: List[ZwzTRankingEntrySchema]
+
+
 class InstitutionDetailsPublicTransportSectionSchema(BaseModel):
     public_transport_stops: List[InstitutionPublicTransportStopAssociationSchema]
 
@@ -115,6 +131,7 @@ class InstitutionDetailsSchema(
     InstitutionDetailsClassProfilesSectionSchema,
     InstitutionDetailsSportsSectionSchema,
     InstitutionDetailsPartnersSectionSchema,
+    InstitutionDetailsZwzTSectionSchema,
     InstitutionDetailsPublicTransportSectionSchema,
     CamelCasedModel,
     InstitutionSourcingSchemaMixin,
